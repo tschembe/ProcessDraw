@@ -114,7 +114,7 @@
 			var titles = Array.prototype.map.call(ui.format.container.querySelectorAll('.geFormatTitle'),
 				function(e) { return e.innerText; });
 			var tagInput = ui.format.container.querySelector('input[data-pd-field="tag"]');
-			ok(titles[0] == 'Engineering', 'Engineering tab first', titles.join('|'));
+			ok(titles[0] == 'Data', 'Data tab first', titles.join('|'));
 			ok(tagInput != null && tagInput.value == 'P-201' && tagInput.offsetWidth > 0, 'tag field visible',
 				(tagInput != null) ? tagInput.value + ' ' + tagInput.offsetWidth : 'none');
 			var fields = ui.format.container.querySelectorAll('.pdForm input').length;

@@ -15,7 +15,7 @@
 		'pdNumberAll=Number All Unnumbered Items\n' +
 		'pdAddSpare=Add Spare (A/B)\n' +
 		'pdCheckTags=Check Tags...\n' +
-		'pdSettings=Tag Numbering && Units...\n');
+		'pdSettings=Tag Numbering & Units...\n');
 
 	function getSelectedPdCells(graph)
 	{
@@ -172,7 +172,8 @@
 		}
 
 		var dlg = new CustomDialog(ui, div, null, null, mxResources.get('close'), null, null, true);
-		ui.showDialog(dlg.container, 420, 440, true, true);
+		var lines = div.querySelectorAll('a, div').length;
+		ui.showDialog(dlg.container, 420, Math.min(440, 110 + lines * 20), true, true);
 	};
 
 	function showSettings(ui)

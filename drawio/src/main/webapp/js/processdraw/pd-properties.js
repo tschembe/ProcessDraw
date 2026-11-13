@@ -14,10 +14,11 @@
 		'.pdForm .pdHead{font-weight:bold;font-size:13px;}' +
 		'.pdForm .pdSub{opacity:0.6;font-size:11px;margin:2px 0 8px 0;}' +
 		'.pdForm .pdRow{display:flex;align-items:center;margin:3px 0;}' +
-		'.pdForm .pdRow label{flex:0 0 42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:4px;}' +
-		'.pdForm .pdRow input{flex:1 1 auto;min-width:0;box-sizing:border-box;height:22px;}' +
-		'.pdForm .pdUnit{flex:0 0 46px;margin-left:4px;opacity:0.6;font-size:11px;}' +
-		'.pdForm .pdNote{font-size:11px;margin:1px 0 4px 42%;}' +
+		'.pdForm .pdRow label{flex:0 0 40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:4px;' +
+			'box-sizing:border-box;}' +
+		'.pdForm .pdRow input{flex:1 1 0px;width:0;min-width:0;max-width:none;box-sizing:border-box;height:22px;}' +
+		'.pdForm .pdUnit{flex:0 0 34px;margin-left:4px;opacity:0.6;font-size:11px;white-space:nowrap;}' +
+		'.pdForm .pdNote{font-size:11px;margin:1px 0 4px 40%;}' +
 		'.pdForm .pdWarn{color:#d32f2f;}' +
 		'.pdForm .pdInfo{opacity:0.65;}' +
 		'.pdForm input.pdError{border-color:#d32f2f;outline-color:#d32f2f;}' +
@@ -109,6 +110,7 @@
 			input.setAttribute('data-pd-field', key);
 			input.setAttribute('spellcheck', 'false');
 			input.value = value;
+			input.setAttribute('title', value);
 			row.appendChild(input);
 
 			var options = Fields.getOptions(key);
@@ -414,7 +416,7 @@
 			label.className = 'geFormatTitle';
 			label.innerText = '';
 			var title = document.createElement('div');
-			mxUtils.write(title, 'Engineering');
+			mxUtils.write(title, 'Data');
 			label.appendChild(title);
 			label.setAttribute('title', 'Engineering data');
 			label.setAttribute('role', 'tab');
@@ -516,10 +518,12 @@
 		openDataSheet: function(ui, cell)
 		{
 			var form = createForm(ui, cell, true);
-			form.style.maxHeight = Math.max(200, Math.min(560, window.innerHeight - 220)) + 'px';
+			var maxHeight = Math.max(200, Math.min(560, window.innerHeight - 220));
+			form.style.maxHeight = maxHeight + 'px';
 			form.style.overflowY = 'auto';
+			var rows = form.querySelectorAll('.pdRow, .pdNote, .pdSection').length;
 			var dlg = new CustomDialog(ui, form, null, null, mxResources.get('close'), null, null, true);
-			ui.showDialog(dlg.container, 460, Math.min(660, window.innerHeight - 80), true, true);
+			ui.showDialog(dlg.container, 460, Math.min(maxHeight, rows * 25 + 110) + 90, true, true);
 			focusField(form, 'tag');
 		},
 
