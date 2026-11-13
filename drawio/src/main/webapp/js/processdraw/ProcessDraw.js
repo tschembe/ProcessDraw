@@ -76,7 +76,23 @@
 			};
 		}
 
-		console.log(ProcessDraw.NAME + ' ' + ProcessDraw.VERSION + ' loaded');
+		// Sidebar was created before the palette hook was installed
+		if (ui.sidebar != null && ui.sidebar.palettes['pdVessels'] == null)
+		{
+			ui.sidebar.refresh();
+		}
+
+		var found = 0;
+		var symbols = 0;
+
+		for (var i = 0; i < ProcessDraw.Library.palettes.length; i++)
+		{
+			found += (ui.sidebar != null && ui.sidebar.palettes[ProcessDraw.Library.palettes[i].id] != null) ? 1 : 0;
+			symbols += ProcessDraw.Library.palettes[i].items.length;
+		}
+
+		console.log(ProcessDraw.NAME + ' ' + ProcessDraw.VERSION + ' loaded: ' + found + '/' +
+			ProcessDraw.Library.palettes.length + ' palettes in sidebar, ' + symbols + ' symbols');
 	};
 
 	// Waits for the editor UI. Draw.loadPlugin queues the callback before the
@@ -93,5 +109,40 @@
 		}
 	};
 
-	register();
+	// Module files, loaded in this order (dynamic scripts have no guaranteed order)
+	var MODULES = ['pd-stencil.js', 'pd-shapes.js', 'pd-library.js', 'pd-symbols-equipment.js',
+		'pd-symbols-piping.js', 'pd-symbols-instruments.js', 'pd-sidebar.js'];
+
+	function loadModules(index, done)
+	{
+		if (index >= MODULES.length)
+		{
+			done();
+		}
+		else
+		{
+			mxscript('js/processdraw/' + MODULES[index], function()
+			{
+				loadModules(index + 1, done);
+			}, null, null, true, function()
+			{
+				console.error('ProcessDraw: could not load ' + MODULES[index]);
+				loadModules(index + 1, done);
+			});
+		}
+	};
+
+	loadModules(0, function()
+	{
+		try
+		{
+			ProcessDraw.installSidebar();
+		}
+		catch (e)
+		{
+			console.error('ProcessDraw: sidebar hook failed', e);
+		}
+
+		register();
+	});
 })();

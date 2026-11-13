@@ -30,7 +30,13 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | Path | Purpose |
 |---|---|
 | `drawio/src/main/webapp/js/processdraw/` | **All ProcessDraw features** (symbols, smart objects, lists, ...) |
-| `drawio/src/main/webapp/js/processdraw/ProcessDraw.js` | Entry point, registers with the editor via `Draw.loadPlugin` |
+| `drawio/src/main/webapp/js/processdraw/ProcessDraw.js` | Entry point: loads the modules below in order, registers with the editor via `Draw.loadPlugin` |
+| `.../processdraw/pd-stencil.js` | Symbol drawing language → stencil XML, embedded as `shape=stencil(...)` |
+| `.../processdraw/pd-shapes.js` | Signal line edge shapes (pneumatic, hydraulic, capillary, data link); also loaded by `export3.html` |
+| `.../processdraw/pd-library.js` | Palette registry, engineering data templates, cell creation |
+| `.../processdraw/pd-symbols-*.js` | Symbol definitions (equipment, piping/valves/lines, instruments) |
+| `.../processdraw/pd-sidebar.js` | Puts the ProcessDraw palettes above the General palette |
+| `tools/symbol-sheet.cjs` | Builds a sheet with all symbols; `npm run symbols` → `symbols.png` |
 | `drawio/src/main/webapp/js/PostConfig.js` | Loads `ProcessDraw.js` (one line added at the end) |
 
 ## Changes to upstream files (keep this list complete for upstream merges)
@@ -43,12 +49,29 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | `drawio/src/main/webapp/js/export.js` | same |
 | `drawio/src/main/webapp/js/vsdxImporter.js` | same |
 | `drawio/src/main/webapp/js/PostConfig.js` | loads `js/processdraw/ProcessDraw.js` |
+| `drawio/src/main/webapp/export3.html` | loads `js/processdraw/pd-shapes.js` (signal lines in CLI/PDF export) |
 
 Why the user agent patch: Electron puts the product name into the user agent
 (`ProcessDraw/32.6.10`), and draw.io detects desktop mode by looking for `draw.io/`.
 
 **Always run `npm run sync -- disableUpdate`** (never plain `npm run sync`): otherwise
 the app would try to install official draw.io updates over ProcessDraw.
+
+## Adding a symbol
+
+Add an entry to one of the `pd-symbols-*.js` files, e.g.
+
+```js
+eq({id: 'pd_pump_centrifugal', name: 'Centrifugal Pump', type: 'pump.centrifugal', prefix: 'P',
+    template: 'pump', w: 40, h: 44, aspect: true,
+    draw: 'e 0 0 40 40; fs; p M 20 0 L 40 0; s',          // drawing language, see pd-stencil.js
+    nozzles: [[0, 20, 'suction'], [40, 0, 'discharge']],  // [x, y, name] in drawing units
+    tags: 'pump centrifugal'})
+```
+
+then run `npm run symbols` and look at `symbols.png`. Data templates (fields per kind of item)
+are in `pd-library.js` (`TEMPLATES`). Symbols are copied into each diagram, so changing a
+symbol does not change diagrams that already use it.
 
 ## Git layout
 
@@ -65,7 +88,7 @@ in the outer repo.
 | Phase | Content | Status |
 |---|---|---|
 | 0 | Setup, rebrand, extension hook, git | done |
-| 1 | ISA 5.1 / ISO 10628 + DIN/EN symbol libraries with nozzles and data templates | |
+| 1 | ISA 5.1 / ISO 10628 + DIN/EN symbol libraries with nozzles and data templates | done |
 | 2 | Smart objects: engineering properties, auto tag numbering, ISA instrument bubbles | |
 | 3 | Configurable line numbering spec | |
 | 4 | Multi-sheet project, off-page connectors, project-wide tag uniqueness | |
