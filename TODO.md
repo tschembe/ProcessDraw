@@ -36,15 +36,23 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [ ] User test in the editor: drag, connect to nozzles, Edit Data, save/reopen, PDF export
 - [x] Commit + update PROCESSDRAW.md
 
-## Phase 2 — Smart objects
-- [ ] Engineering properties panel (Format sidebar tab) per pd_class, with units
-- [ ] Auto tag numbering (prefix + sequence, A/B suffix for spares), configurable start/step
-- [ ] Renumber / re-tag tools, tag uniqueness check while typing
-- [ ] ISA instrument bubble: type `FIC-101` → function/loop split, bubble updates
-- [ ] Copy/paste and duplicate get new tags
-- [ ] Equipment data sheet dialog (all fields)
-- [ ] Double-click on a symbol edits its tag (today it edits the `%tag%` label template)
-- [ ] Units per field (bar(g), °C, m³/h …) and unit system setting
+## Phase 2 — Smart objects ✅
+- [x] Engineering tab in the Format panel (first tab when one symbol is selected): tag, ISA function/loop,
+      all data fields with units and suggested values, duplicate-tag warning while typing
+- [x] Data sheet dialog: double-click a symbol (Alt+double-click still edits the label text)
+- [x] Auto tag numbering on insert, paste and duplicate (prefix + next free number, project-wide over all pages)
+- [x] Instruments: loop numbers; typing `FIC-101` / `fic 101` / `20-FIC-101` splits function and loop;
+      ISA letters decoded ("Flow Indicating Controller")
+- [x] Manual valves untagged by default; Renumber Selection gives them HV numbers if wanted
+- [x] Renumber Selection (position order, optional start number), Number All Unnumbered Items
+- [x] Add Spare (A/B): P-101 → P-101A + P-101B (next free letter)
+- [x] Check Tags: duplicates and unnumbered items, click to jump to the item (any page)
+- [x] Tag numbering & units settings (first number, step, digits, separator, auto on/off, metric/imperial),
+      saved in the diagram
+- [x] ProcessDraw menu (main menu / menubar) and right-click items
+- [x] Tests: `npm run test:pd` (tag parsing, ISA) + in-app self-test (25 checks, see PROCESSDRAW.md)
+- [ ] User test in the editor
+- [ ] Later: unit conversion when switching unit system; per-area numbering (e.g. 10-P-101 per unit)
 
 ## Phase 3 — Line numbering
 - [ ] Project line number pattern editor (e.g. `{size}"-{service}-{seq}-{class}-{insul}`)

@@ -1,0 +1,164 @@
+/**
+ * ProcessDraw developer self-test. Loaded only with the URL parameter pdtest=1
+ * (DRAWIO_ENV=dev and {"pdtest": "1"} in urlParams.json in the working folder).
+ * Runs on an empty diagram and logs "PDTEST PASS/FAIL ..." lines to the console.
+ */
+(function()
+{
+	function run(ui)
+	{
+		var T = ProcessDraw.Tags;
+		var L = ProcessDraw.Library;
+		var graph = ui.editor.graph;
+		var passed = 0;
+		var failed = 0;
+
+		function ok(cond, name, detail)
+		{
+			if (cond)
+			{
+				passed++;
+				console.log('PDTEST PASS ' + name);
+			}
+			else
+			{
+				failed++;
+				console.log('PDTEST FAIL ' + name + ((detail != null) ? ' :: ' + detail : ''));
+			}
+		};
+
+		function insert(id, x, y)
+		{
+			var cell = L.createCell(L.getSymbol(id));
+			cell.geometry.x = x;
+			cell.geometry.y = y;
+
+			return graph.importCells([cell], 0, 0, graph.getDefaultParent())[0];
+		};
+
+		function tag(cell)
+		{
+			return T.attr(cell, 'tag');
+		};
+
+		try
+		{
+			// Auto numbering on insert
+			var p1 = insert('pd_pump_centrifugal', 100, 100);
+			var p2 = insert('pd_pump_centrifugal', 200, 100);
+			var v1 = insert('pd_vessel_vertical', 300, 100);
+			ok(tag(p1) == 'P-101', 'first pump P-101', tag(p1));
+			ok(tag(p2) == 'P-102', 'second pump P-102', tag(p2));
+			ok(tag(v1) == 'V-101', 'vessel V-101', tag(v1));
+
+			// Manual valve stays untagged, control valve is numbered
+			var gv = insert('pd_valve_gate', 100, 300);
+			var cv = insert('pd_valve_control', 200, 300);
+			ok(tag(gv) == '', 'gate valve untagged', tag(gv));
+			ok(tag(cv) == 'FV-101', 'control valve FV-101', tag(cv));
+
+			// Instruments get loop numbers
+			var i1 = insert('pd_inst_shared_main', 100, 400);
+			ok(tag(i1) == 'FIC-101' && T.attr(i1, 'loop') == '101' && T.attr(i1, 'function') == 'FIC',
+				'instrument FIC-101', tag(i1));
+
+			// Copy / duplicate gets a new tag
+			var dup = graph.duplicateCells([p1])[0];
+			ok(tag(dup) == 'P-103', 'duplicate becomes P-103', tag(dup));
+			ok(tag(p1) == 'P-101', 'original keeps P-101', tag(p1));
+
+			// Typing an instrument tag splits function and loop
+			T.setTag(ui, i1, 'pdit 205');
+			ok(tag(i1) == 'PDIT-205' && T.attr(i1, 'function') == 'PDIT' && T.attr(i1, 'loop') == '205',
+				'setTag splits instrument tag', tag(i1) + ' ' + T.attr(i1, 'function') + ' ' + T.attr(i1, 'loop'));
+			var i2 = insert('pd_inst_discrete_field', 200, 400);
+			ok(tag(i2) == 'TI-206', 'next loop after 205', tag(i2));
+
+			// Duplicate detection
+			T.setTag(ui, p2, 'P-101');
+			ok(T.findTag(ui, 'P-101', p1).length == 1, 'findTag finds duplicate');
+			var check = T.check(ui);
+			ok(check.duplicates['P-101'] != null && check.duplicates['P-101'].length == 2, 'check lists duplicate');
+
+			// Renumber selection from 201 in position order (the duplicate sits next to p1)
+			var n = T.renumber(ui, [p1, p2, dup], 201);
+			ok(n == 3 && tag(p1) == 'P-201' && tag(dup) == 'P-202' && tag(p2) == 'P-203', 'renumber from 201',
+				[tag(p1), tag(p2), tag(dup)].join(','));
+
+			// Spare A/B
+			ProcessDraw.Actions.addSpare(ui, v1);
+			var spare = graph.getSelectionCell();
+			ok(tag(v1) == 'V-101A' && tag(spare) == 'V-101B', 'spare A/B', tag(v1) + ' ' + tag(spare));
+
+			// Settings round trip and padding
+			T.setSettings(ui, {digits: 4, start: 1, separator: '-'});
+			var s = T.getSettings(ui);
+			ok(s.digits == 4 && s.start == 1, 'settings saved', JSON.stringify(s));
+			var k1 = insert('pd_compressor_centrifugal', 400, 100);
+			ok(tag(k1) == 'K-0001', 'K-0001 with 4 digits from 1', tag(k1));
+			T.setSettings(ui, {autonumber: false});
+			var k2 = insert('pd_compressor_centrifugal', 500, 100);
+			ok(tag(k2) == 'K-???', 'auto numbering off', tag(k2));
+			T.setSettings(ui, {autonumber: true, digits: 3, start: 101});
+
+			// Undo of an insert removes the cell and its numbering in one step
+			var before = graph.model.getChildCount(graph.getDefaultParent());
+			var p9 = insert('pd_pump_centrifugal', 600, 100);
+			ui.editor.undoManager.undo();
+			ok(graph.model.getChildCount(graph.getDefaultParent()) == before && graph.model.getParent(p9) == null,
+				'undo insert in one step');
+
+			// Engineering tab in the Format panel
+			graph.setSelectionCell(p1);
+			ui.format.immediateRefresh();
+			var titles = Array.prototype.map.call(ui.format.container.querySelectorAll('.geFormatTitle'),
+				function(e) { return e.innerText; });
+			var tagInput = ui.format.container.querySelector('input[data-pd-field="tag"]');
+			ok(titles[0] == 'Engineering', 'Engineering tab first', titles.join('|'));
+			ok(tagInput != null && tagInput.value == 'P-201' && tagInput.offsetWidth > 0, 'tag field visible',
+				(tagInput != null) ? tagInput.value + ' ' + tagInput.offsetWidth : 'none');
+			var fields = ui.format.container.querySelectorAll('.pdForm input').length;
+			ok(fields >= 8, 'pump form has data fields', fields);
+
+			// Editing the tag field commits through the form
+			tagInput.value = 'P-301';
+			tagInput.dispatchEvent(new Event('change'));
+			ok(tag(p1) == 'P-301', 'tag field commits', tag(p1));
+
+			// Data sheet dialog on double-click
+			graph.dblClick(new MouseEvent('dblclick'), p2);
+			var dlgForm = document.querySelector('.geDialog .pdForm');
+			ok(dlgForm != null, 'double-click opens data sheet');
+			ui.hideDialog();
+
+			// Menus and actions exist
+			ok(ui.menus.get('processdraw') != null && ui.actions.get('pdRenumber') != null &&
+				ui.actions.get('pdCheckTags') != null, 'menu and actions registered');
+
+			// ISA decoding
+			ok(T.decodeIsa('FIC') == 'Flow Indicating Controller', 'ISA decode');
+		}
+		catch (e)
+		{
+			failed++;
+			console.log('PDTEST FAIL exception :: ' + e.message + ' ' + e.stack);
+		}
+
+		console.log('PDTEST DONE passed=' + passed + ' failed=' + failed);
+	};
+
+	window.setTimeout(function()
+	{
+		if (ProcessDraw.ui != null)
+		{
+			run(ProcessDraw.ui);
+		}
+		else
+		{
+			Draw.loadPlugin(function(ui)
+			{
+				window.setTimeout(function() { run(ui); }, 500);
+			});
+		}
+	}, 1500);
+})();

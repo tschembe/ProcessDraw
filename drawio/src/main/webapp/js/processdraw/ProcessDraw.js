@@ -8,7 +8,7 @@
 {
 	var ProcessDraw = window.ProcessDraw = window.ProcessDraw || {};
 
-	ProcessDraw.VERSION = '0.1.0';
+	ProcessDraw.VERSION = '0.2.0';
 	ProcessDraw.NAME = 'ProcessDraw';
 
 	// Window title and other places that show the application name
@@ -76,6 +76,24 @@
 			};
 		}
 
+		var modules = [['tags', ProcessDraw.Tags], ['properties', ProcessDraw.Properties],
+			['actions', ProcessDraw.Actions]];
+
+		for (var i = 0; i < modules.length; i++)
+		{
+			try
+			{
+				if (modules[i][1] != null)
+				{
+					modules[i][1].install(ui);
+				}
+			}
+			catch (e)
+			{
+				console.error('ProcessDraw: ' + modules[i][0] + ' failed', e);
+			}
+		}
+
 		// Sidebar was created before the palette hook was installed
 		if (ui.sidebar != null && ui.sidebar.palettes['pdVessels'] == null)
 		{
@@ -111,7 +129,14 @@
 
 	// Module files, loaded in this order (dynamic scripts have no guaranteed order)
 	var MODULES = ['pd-stencil.js', 'pd-shapes.js', 'pd-library.js', 'pd-symbols-equipment.js',
-		'pd-symbols-piping.js', 'pd-symbols-instruments.js', 'pd-sidebar.js'];
+		'pd-symbols-piping.js', 'pd-symbols-instruments.js', 'pd-sidebar.js', 'pd-tags.js', 'pd-fields.js',
+		'pd-properties.js', 'pd-actions.js'];
+
+	// Developer self-test: DRAWIO_ENV=dev with {"pdtest": "1"} in urlParams.json
+	if (urlParams['pdtest'] == '1')
+	{
+		MODULES.push('pd-selftest.js');
+	}
 
 	function loadModules(index, done)
 	{

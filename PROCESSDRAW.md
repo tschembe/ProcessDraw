@@ -36,6 +36,11 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | `.../processdraw/pd-library.js` | Palette registry, engineering data templates, cell creation |
 | `.../processdraw/pd-symbols-*.js` | Symbol definitions (equipment, piping/valves/lines, instruments) |
 | `.../processdraw/pd-sidebar.js` | Puts the ProcessDraw palettes above the General palette |
+| `.../processdraw/pd-tags.js` | Tag parsing, ISA letters, project settings, auto numbering, renumber, tag check |
+| `.../processdraw/pd-fields.js` | Field captions, units (metric/imperial) and suggested values |
+| `.../processdraw/pd-properties.js` | Engineering tab in the Format panel, data sheet dialog, double-click |
+| `.../processdraw/pd-actions.js` | ProcessDraw menu, right-click items, renumber/spare/check/settings commands |
+| `.../processdraw/pd-selftest.js` | In-app self-test, only loaded with `pdtest=1` |
 | `tools/symbol-sheet.cjs` | Builds a sheet with all symbols; `npm run symbols` → `symbols.png` |
 | `drawio/src/main/webapp/js/PostConfig.js` | Loads `ProcessDraw.js` (one line added at the end) |
 
@@ -56,6 +61,23 @@ Why the user agent patch: Electron puts the product name into the user agent
 
 **Always run `npm run sync -- disableUpdate`** (never plain `npm run sync`): otherwise
 the app would try to install official draw.io updates over ProcessDraw.
+
+## Tests
+
+```bash
+npm run test:pd        # tag parsing and ISA decoding (Node)
+npm run symbols        # all symbols → symbols.png
+# In-app self-test on an empty diagram (inserts symbols, numbers, renumbers, opens dialogs):
+echo '{"pdtest": "1"}' > urlParams.json
+DRAWIO_ENV=dev ELECTRON_ENABLE_LOGGING=1 npx electron . empty.drawio 2>&1 | grep PDTEST
+rm urlParams.json
+```
+
+## Project settings
+
+Stored as attributes on the root cell of the first page (`pd_tag_start`, `pd_tag_step`,
+`pd_tag_digits`, `pd_tag_separator`, `pd_autonumber`, `pd_units`). Edit them with
+ProcessDraw > Tag Numbering & Units.
 
 ## Adding a symbol
 
@@ -89,7 +111,7 @@ in the outer repo.
 |---|---|---|
 | 0 | Setup, rebrand, extension hook, git | done |
 | 1 | ISA 5.1 / ISO 10628 + DIN/EN symbol libraries with nozzles and data templates | done |
-| 2 | Smart objects: engineering properties, auto tag numbering, ISA instrument bubbles | |
+| 2 | Smart objects: engineering properties, auto tag numbering, ISA instrument bubbles | done |
 | 3 | Configurable line numbering spec | |
 | 4 | Multi-sheet project, off-page connectors, project-wide tag uniqueness | |
 | 5 | PFD stream markers + heat and material balance tables | |

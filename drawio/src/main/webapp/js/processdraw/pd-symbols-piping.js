@@ -22,6 +22,13 @@
 		def.standard = def.standard || ISO;
 		def.template = def.template || 'valve';
 		def.prefix = (def.prefix != null) ? def.prefix : 'HV';
+
+		// Manual valves are not tagged by default (Renumber Selection gives them HV numbers)
+		if (def.template == null || def.template == 'valve')
+		{
+			def.tag = (def.tag != null) ? def.tag : '';
+		}
+
 		def.aspect = (def.aspect != null) ? def.aspect : true;
 		return def;
 	};
