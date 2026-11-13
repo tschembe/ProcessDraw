@@ -1,5 +1,10 @@
 # CLAUDE.md - AI Assistant Guide for draw.io Desktop
 
+> **This checkout is ProcessDraw**, a PFD/P&ID fork. Read `PROCESSDRAW.md` first: it lists
+> where ProcessDraw code lives (`drawio/src/main/webapp/js/processdraw/`), every upstream file
+> we changed, the roadmap, and rules (e.g. always `npm run sync -- disableUpdate`).
+> Upstream conventions below (code style etc.) still apply.
+
 ## Project Overview
 
 Draw.io Desktop is an Electron-based desktop application that wraps the core draw.io diagramming editor (included as a git submodule). It enables creating flowcharts, UML diagrams, and more, with a security-first design that isolates diagram data from the internet.

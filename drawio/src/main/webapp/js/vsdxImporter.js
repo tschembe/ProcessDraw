@@ -8,7 +8,7 @@
 // hosted page (file input, #doneDiv, window.importResXML).
 var mxIsElectron = navigator.userAgent != null &&
 	navigator.userAgent.toLowerCase().indexOf(' electron/') > -1 && 
-	navigator.userAgent.indexOf(' draw.io/') > -1;
+	(navigator.userAgent.indexOf(' draw.io/') > -1 || navigator.userAgent.indexOf(' ProcessDraw/') > -1);
 /**
  * Adds meta tag to the page.
  */
