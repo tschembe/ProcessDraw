@@ -320,9 +320,9 @@
 			{
 				var html = buildTitleBlockHtml(ui);
 
-				if (force || Tags.attr(cells.titleblock, 'label') != html)
+				if (force || Tags.attr(cells.titleblock, 'label') != html || Tags.attr(cells.titleblock, 'pd_refresh') == '1')
 				{
-					Tags.setAttributes(graph, cells.titleblock, {label: html});
+					Tags.setAttributes(graph, cells.titleblock, {label: html, pd_refresh: null});
 					graph.updateCellSize(cells.titleblock, true);
 				}
 
@@ -343,9 +343,9 @@
 			{
 				var rhtml = buildRevisionTableHtml(ui);
 
-				if (force || Tags.attr(cells.revtable, 'label') != rhtml)
+				if (force || Tags.attr(cells.revtable, 'label') != rhtml || Tags.attr(cells.revtable, 'pd_refresh') == '1')
 				{
-					Tags.setAttributes(graph, cells.revtable, {label: rhtml});
+					Tags.setAttributes(graph, cells.revtable, {label: rhtml, pd_refresh: null});
 					graph.updateCellSize(cells.revtable, true);
 				}
 
@@ -586,6 +586,22 @@
 			{
 				console.error('ProcessDraw: title block refresh failed', e);
 			}
+		});
+
+		// Files from the MCP server: title block and revision table are sized when first shown
+		ui.editor.addListener('fileLoaded', function()
+		{
+			window.setTimeout(function()
+			{
+				try
+				{
+					refresh(ui);
+				}
+				catch (e)
+				{
+					console.error('ProcessDraw: title block refresh failed', e);
+				}
+			}, 0);
 		});
 
 		// Project data, page count or sheet order may have changed elsewhere

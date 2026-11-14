@@ -519,9 +519,10 @@
 					var html = (isTable(cells[i])) ? buildTableHtml(ui, cells[i]) :
 						((isSummary(cells[i])) ? buildSummaryHtml(ui, cells[i]) : null);
 
-					if (html != null && Tags.attr(cells[i], 'label') != html)
+					// pd_refresh: made outside the editor (MCP server), sized here from the rendered HTML
+					if (html != null && (Tags.attr(cells[i], 'label') != html || Tags.attr(cells[i], 'pd_refresh') == '1'))
 					{
-						Tags.setAttributes(graph, cells[i], {label: html});
+						Tags.setAttributes(graph, cells[i], {label: html, pd_refresh: null});
 						graph.updateCellSize(cells[i], true);
 						count++;
 					}
@@ -854,7 +855,22 @@
 			}
 		});
 
-		// Streams on other sheets may have changed
+		// Streams on other sheets may have changed; files from the MCP server need sizing
+		ui.editor.addListener('fileLoaded', function()
+		{
+			window.setTimeout(function()
+			{
+				try
+				{
+					refreshPage(ui);
+				}
+				catch (e)
+				{
+					console.error('ProcessDraw: H&MB refresh failed', e);
+				}
+			}, 0);
+		});
+
 		ui.editor.addListener('pageSelected', function()
 		{
 			window.setTimeout(function()

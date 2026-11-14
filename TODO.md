@@ -152,7 +152,19 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
       kgmole/h, mol/s → kmol/h …), matches streams by number or name, preview with corrections
 - [x] Tests: `npm run test:pd` (22 unit tests), in-app self-test 114 checks
 
+## MCP server ✅
+- [x] ProcessDraw MCP server in `mcp/`, based on the official draw.io MCP tool server (all its tools kept)
+- [x] processdraw_create_drawing: spec → .drawio with ProcessDraw symbols, automatic tags / loops / line
+      numbers (through valves and linked off-page connectors), streams, H&MB, summaries, ELK layout,
+      libavoid routing, frame A3–A0 chosen automatically, title block and revisions; preview images
+- [x] processdraw_define_symbol: new symbols in the drawing language, saved to a JSON + draw.io library,
+      preview with nozzles; processdraw_list_symbols, _read_drawing, _update_drawing, _export_lists, _preview
+- [x] Editor sizes server-made title blocks / tables on load (pd_refresh)
+- [x] Tests: official 147 + end-to-end MCP test (with rendering)
+- [ ] User test: a real paper → P&ID with Claude Code
+
 ## Later
+- [ ] Remote (HTTP) MCP server for claude.ai in the browser
 - [ ] Fills in DXF (hatches for solid symbol parts); one DXF per sheet for multi-sheet projects
 - [ ] Simulator native files (DWSIM .dwxmz, HYSYS .hsc) — today via CSV / XLSX / copy-paste
 - [ ] Unit conversion when switching the project unit system; per-area numbering

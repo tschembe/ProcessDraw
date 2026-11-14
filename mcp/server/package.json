@@ -1,0 +1,39 @@
+{
+  "name": "processdraw-mcp",
+  "version": "0.1.0",
+  "description": "ProcessDraw MCP server: P&ID and PFD drawings for ProcessDraw (based on the official draw.io MCP tool server 1.12.0)",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "processdraw-mcp": "./src/index.js"
+  },
+  "scripts": {
+    "copy-shared": "cp ../shared/xml-reference.md src/xml-reference.md && cp ../shared/xml-essentials.md src/xml-essentials.md && cp ../shared/mermaid-reference.md src/mermaid-reference.md && cp ../shared/shape-search.js src/shape-search.js && cp ../shared/icon-search.js src/icon-search.js && cp ../shared/mermaid-elk.js src/mermaid-elk.js && cp ../shared/mx-model.js src/mx-model.js && cp ../shared/mx-xml.js src/mx-xml.js && cp ../shared/normalize-model.js src/normalize-model.js && cp ../shared/repair-xml.js src/repair-xml.js && cp ../shared/label-perimeter.js src/label-perimeter.js && cp ../shared/edge-waypoints.js src/edge-waypoints.js && cp ../shared/icon-resolver.js src/icon-resolver.js && cp ../shared/icon-table.js src/icon-table.js",
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "mcp",
+    "processdraw",
+    "p&id",
+    "pfd",
+    "drawio",
+    "process engineering"
+  ],
+  "author": "ProcessDraw (based on @drawio/mcp by draw.io Ltd)",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "pako": "^2.1.0"
+  },
+  "files": [
+    "src",
+    "vendor",
+    "README.md",
+    "LICENSE"
+  ],
+  "private": true
+}

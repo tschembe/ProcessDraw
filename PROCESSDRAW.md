@@ -33,6 +33,15 @@ Material Balance, Sheets & Off-Page Connectors, Lists & Checks, Settings, plus *
 features by phase with buttons). Right-click on symbols, lines, connectors and tables shows the
 matching commands. The menu is defined in `pd-actions.js` (`SUBMENUS`, `fillMainMenu`).
 
+## MCP server (Claude draws P&IDs)
+
+`mcp/` holds the ProcessDraw MCP server, based on the official draw.io MCP tool server: Claude
+(Claude Code, Claude Desktop) creates, reads, updates and exports ProcessDraw drawings and defines
+new symbols. Setup and tools: [mcp/README.md](mcp/README.md). It loads the editor modules from
+`drawio/src/main/webapp/js/processdraw/` headlessly, so drawings follow the same rules as in the
+editor. Cells the server cannot size (title block, revision table, H&MB, summaries) carry
+`pd_refresh="1"`; the editor sizes them when the file is loaded and removes the mark.
+
 ## Where the ProcessDraw code lives
 
 | Path | Purpose |
@@ -72,6 +81,7 @@ matching commands. The menu is defined in `pd-actions.js` (`SUBMENUS`, `fillMain
 | `drawio/src/main/webapp/js/vsdxImporter.js` | same |
 | `drawio/src/main/webapp/js/PostConfig.js` | loads `js/processdraw/ProcessDraw.js` |
 | `drawio/src/main/webapp/export3.html` | loads `js/processdraw/pd-shapes.js` (signal lines in CLI/PDF export) |
+| `electron-builder-*.json` | `mcp/` and `tools/` are not packaged into the app |
 
 Why the user agent patch: Electron puts the product name into the user agent
 (`ProcessDraw/32.6.10`), and draw.io detects desktop mode by looking for `draw.io/`.
