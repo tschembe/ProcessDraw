@@ -93,9 +93,9 @@
 			'DP', 'thermal', 'variable area']},
 		line_number: {label: 'Line number'},
 		service_code: {label: 'Service code'},
-		sequence: {label: 'Sequence number'},
-		insulation: {label: 'Insulation', options: ['none', 'H (hot)', 'C (cold)', 'P (personnel)',
-			'A (acoustic)', 'ET (electric traced)', 'ST (steam traced)']},
+		sequence: {label: 'Sequence'},
+		insulation: {label: 'Insulation', options: ['H|hot conservation', 'C|cold', 'P|personnel protection',
+			'A|acoustic', 'ET|electric traced', 'ST|steam traced', 'J|jacketed']},
 		fluid: {label: 'Fluid'},
 		from: {label: 'From'},
 		to: {label: 'To'},
@@ -142,8 +142,17 @@
 			return (q != null) ? (units[q] || '') : '';
 		},
 
-		getOptions: function(key)
+		/**
+		 * Suggested values; "value|description" entries show the description.
+		 * Service codes and pipe classes come from the project lists.
+		 */
+		getOptions: function(key, ui)
 		{
+			if (ui != null && ProcessDraw.Lines != null && (key == 'service_code' || key == 'pipe_class'))
+			{
+				return ProcessDraw.Lines.getCodeOptions(ui, key);
+			}
+
 			return (FIELDS[key] != null) ? FIELDS[key].options : null;
 		}
 	};

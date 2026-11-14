@@ -18,7 +18,12 @@
 			'box-sizing:border-box;}' +
 		'.pdForm .pdRow input{flex:1 1 0px;width:0;min-width:0;max-width:none;box-sizing:border-box;height:22px;}' +
 		'.pdForm .pdUnit{flex:0 0 34px;margin-left:4px;opacity:0.6;font-size:11px;white-space:nowrap;}' +
-		'.pdForm .pdNote{font-size:11px;margin:1px 0 4px 40%;}' +
+		'.pdForm .pdNote{font-size:11px;margin:1px 0 4px 40%;white-space:normal;overflow-wrap:anywhere;}' +
+		'.pdForm .pdRow.pdWide{flex-wrap:wrap;}' +
+		'.pdForm .pdRow.pdWide label{flex:0 0 100%;margin-bottom:2px;}' +
+		'.pdForm .pdRow.pdWide input{flex:1 1 auto;width:auto;}' +
+		'.pdForm .pdRow.pdWide .pdUnit{display:none;}' +
+		'.pdForm .pdNote.pdFull{margin-left:0;}' +
 		'.pdForm .pdWarn{color:#d32f2f;}' +
 		'.pdForm .pdInfo{opacity:0.65;}' +
 		'.pdForm input.pdError{border-color:#d32f2f;outline-color:#d32f2f;}' +
@@ -113,7 +118,7 @@
 			input.setAttribute('title', value);
 			row.appendChild(input);
 
-			var options = Fields.getOptions(key);
+			var options = Fields.getOptions(key, ui);
 
 			if (options != null)
 			{
@@ -123,7 +128,13 @@
 				for (var i = 0; i < options.length; i++)
 				{
 					var opt = document.createElement('option');
-					opt.value = options[i];
+					var parts = String(options[i]).split('|');
+					opt.value = parts[0];
+
+					if (parts.length > 1)
+					{
+						opt.label = parts[1];
+					}
 					list.appendChild(opt);
 				}
 
@@ -269,6 +280,47 @@
 				}
 			}
 
+			// Line number of process lines
+			var isLine = cls == 'line' && ProcessDraw.Lines != null;
+			var Lines = ProcessDraw.Lines;
+
+			if (isLine)
+			{
+				var settings = Tags.getSettings(ui);
+				var manual = value.getAttribute('pd_line_manual') == '1';
+				var segments = Lines.getSegments(ui, value.getAttribute('line_number'));
+				var numberInput = addRow(form, 'line_number', 'Line number', value.getAttribute('line_number') || '',
+					function(v)
+					{
+						commit(function()
+						{
+							Lines.setManualNumber(ui, cell, v, ProcessDraw.Properties.applyToSegments);
+						});
+					});
+				numberInput.style.fontWeight = 'bold';
+				numberInput.parentNode.classList.add('pdWide');
+				addNote(form, (manual) ? 'Typed in (pattern not used)' : ((value.getAttribute('sequence')) ?
+					'From pattern ' + settings.linePattern : 'Numbered when the line is connected'), 'pdInfo pdFull');
+
+				if (segments.length > 1)
+				{
+					var row = document.createElement('div');
+					row.className = 'pdNote pdFull';
+					var cb = document.createElement('input');
+					cb.setAttribute('type', 'checkbox');
+					cb.checked = ProcessDraw.Properties.applyToSegments;
+					cb.style.margin = '0 4px 0 0';
+					cb.style.verticalAlign = 'middle';
+					mxEvent.addListener(cb, 'change', function()
+					{
+						ProcessDraw.Properties.applyToSegments = cb.checked;
+					});
+					row.appendChild(cb);
+					mxUtils.write(row, 'Changes apply to all ' + segments.length + ' segments');
+					form.appendChild(row);
+				}
+			}
+
 			// Data fields in stored order
 			var section = document.createElement('div');
 			section.className = 'pdSection';
@@ -281,7 +333,8 @@
 				var key = value.attributes[i].name;
 
 				if (HIDDEN[key] || key.substring(0, 3) == 'pd_' ||
-					(isInstrument && (key == 'function' || key == 'loop')))
+					(isInstrument && (key == 'function' || key == 'loop')) ||
+					(isLine && key == 'line_number'))
 				{
 					continue;
 				}
@@ -294,7 +347,15 @@
 						{
 							var values = {};
 							values[key] = v;
-							Tags.setAttributes(graph, cell, values);
+
+							if (isLine && mxUtils.indexOf(Lines.LINE_KEYS, key) >= 0)
+							{
+								Lines.update(ui, cell, values, ProcessDraw.Properties.applyToSegments);
+							}
+							else
+							{
+								Tags.setAttributes(graph, cell, values);
+							}
 						});
 					});
 				})(key);
@@ -316,6 +377,28 @@
 				addButton(buttons, 'Data sheet...', 'Show all data in a dialog (double-click)', function()
 				{
 					ProcessDraw.Properties.openDataSheet(ui, cell);
+				});
+			}
+
+			if (isLine && value.getAttribute('pd_line_manual') == '1')
+			{
+				addButton(buttons, 'Use pattern', 'Build the line number from the project pattern again', function()
+				{
+					commit(function()
+					{
+						Lines.useAutoNumber(ui, cell, ProcessDraw.Properties.applyToSegments);
+					});
+				});
+			}
+
+			if (isLine)
+			{
+				addButton(buttons, 'New line (split)', 'Give this segment a new sequence number', function()
+				{
+					commit(function()
+					{
+						Lines.split(ui, [cell]);
+					});
 				});
 			}
 
@@ -514,6 +597,9 @@
 	ProcessDraw.Properties =
 	{
 		createForm: createForm,
+
+		// Line changes go to all segments with the same line number
+		applyToSegments: true,
 
 		openDataSheet: function(ui, cell)
 		{

@@ -54,12 +54,21 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [ ] User test in the editor
 - [ ] Later: unit conversion when switching unit system; per-area numbering (e.g. 10-P-101 per unit)
 
-## Phase 3 — Line numbering
-- [ ] Project line number pattern editor (e.g. `{size}"-{service}-{seq}-{class}-{insul}`)
-- [ ] Pipe line properties (size, service code, pipe class, insulation, from/to)
-- [ ] Automatic line number generation + label update
-- [ ] Service code & pipe class lists (editable)
-- [ ] Line breaks / segment continuation keeps one line number
+## Phase 3 — Line numbering ✅
+- [x] Project line number pattern with `{field}` and optional `[ ]` parts, live example
+      (default `{size}-{service_code}-{sequence}-{pipe_class}[-{insulation}]` → `6"-P-1001-A1A-H`)
+- [x] Line data: line number, size, service code, sequence, pipe class, insulation, fluid, from, to
+- [x] Automatic sequence when a line is connected (drawn from a nozzle or dropped and connected later)
+- [x] Line continues through valves, fittings, specials and inline instruments (same line number)
+- [x] From / To filled with the tags of the connected items
+- [x] Changes apply to all segments with the same line number (can be switched off per edit)
+- [x] Typed-in line numbers are kept; "Use pattern" returns to automatic
+- [x] Service codes and pipe classes as editable project lists, shown as suggestions
+- [x] Join Line Segments, Split Line (New Number), Update All Line Numbers; right-click on lines
+- [x] Pattern change updates all automatic line numbers on all pages
+- [x] Tests: `npm run test:pd` (8 unit tests) + in-app self-test (42 checks)
+- [ ] User test in the editor
+- [ ] Later: separate sequence per service code (option), line breaks across sheets (phase 4)
 
 ## Phase 4 — Multi-sheet project
 - [ ] Sheets = pages; sheet number/title in page metadata

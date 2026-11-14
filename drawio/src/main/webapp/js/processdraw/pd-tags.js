@@ -128,7 +128,16 @@
 		digits: 3,
 		separator: '-',
 		autonumber: true,
-		units: 'metric'
+		units: 'metric',
+		linePattern: '{size}-{service_code}-{sequence}-{pipe_class}[-{insulation}]',
+		lineStart: 1001,
+		lineDigits: 4,
+		serviceCodes: 'P = Process\nG = Process gas\nF = Flare\nV = Vent\nD = Drain\n' +
+			'CWS = Cooling water supply\nCWR = Cooling water return\nLS = Low pressure steam\n' +
+			'MS = Medium pressure steam\nHS = High pressure steam\nC = Condensate\nIA = Instrument air\n' +
+			'PA = Plant air\nN = Nitrogen\nFG = Fuel gas\nW = Water\nDW = Demineralized water\nCH = Chemical',
+		pipeClasses: 'A1A = CS, 150#, RF, CA 3 mm\nA3A = CS, 300#, RF, CA 3 mm\nB1A = SS316L, 150#, RF\n' +
+			'B3A = SS316L, 300#, RF\nD1A = CS galvanized, 150#, utilities'
 	};
 
 	// Root cell attribute for each setting
@@ -139,7 +148,12 @@
 		digits: 'pd_tag_digits',
 		separator: 'pd_tag_separator',
 		autonumber: 'pd_autonumber',
-		units: 'pd_units'
+		units: 'pd_units',
+		linePattern: 'pd_line_pattern',
+		lineStart: 'pd_line_start',
+		lineDigits: 'pd_line_digits',
+		serviceCodes: 'pd_service_codes',
+		pipeClasses: 'pd_pipe_classes'
 	};
 
 	function getPages(ui)

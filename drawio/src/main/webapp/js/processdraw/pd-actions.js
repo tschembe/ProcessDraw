@@ -15,7 +15,11 @@
 		'pdNumberAll=Number All Unnumbered Items\n' +
 		'pdAddSpare=Add Spare (A/B)\n' +
 		'pdCheckTags=Check Tags...\n' +
-		'pdSettings=Tag Numbering & Units...\n');
+		'pdSettings=Tag Numbering & Units...\n' +
+		'pdLineSettings=Line Numbering...\n' +
+		'pdJoinLines=Join Line Segments\n' +
+		'pdSplitLine=Split Line (New Number)\n' +
+		'pdUpdateLines=Update All Line Numbers\n');
 
 	function getSelectedPdCells(graph)
 	{
@@ -276,6 +280,127 @@
 		ui.showDialog(dlg.container, 420, 330, true, true);
 	};
 
+
+	function showLineSettings(ui)
+	{
+		var Lines = ProcessDraw.Lines;
+		var settings = Tags.getSettings(ui);
+		var div = document.createElement('div');
+		div.style.fontSize = '12px';
+
+		function addTitle(text, size)
+		{
+			var t = document.createElement('div');
+			t.style.fontWeight = 'bold';
+			t.style.fontSize = size || '12px';
+			t.style.margin = '10px 0 4px 0';
+			mxUtils.write(t, text);
+			div.appendChild(t);
+		};
+
+		function addInput(caption, value)
+		{
+			var row = document.createElement('div');
+			row.style.display = 'flex';
+			row.style.alignItems = 'center';
+			row.style.margin = '4px 0';
+			var label = document.createElement('label');
+			label.style.flex = '0 0 40%';
+			mxUtils.write(label, caption);
+			row.appendChild(label);
+			var input = document.createElement('input');
+			input.setAttribute('type', 'text');
+			input.style.flex = '1 1 auto';
+			input.value = value;
+			row.appendChild(input);
+			div.appendChild(row);
+
+			return input;
+		};
+
+		function addArea(value)
+		{
+			var area = document.createElement('textarea');
+			area.style.width = '100%';
+			area.style.height = '90px';
+			area.style.boxSizing = 'border-box';
+			area.style.fontFamily = 'monospace';
+			area.style.fontSize = '11px';
+			area.value = value;
+			div.appendChild(area);
+
+			return area;
+		};
+
+		addTitle('Line Numbering', '14px');
+		var pattern = addInput('Pattern', settings.linePattern);
+		var preview = document.createElement('div');
+		preview.style.margin = '2px 0 0 40%';
+		preview.style.opacity = '0.7';
+		div.appendChild(preview);
+
+		var help = document.createElement('div');
+		help.style.opacity = '0.65';
+		help.style.fontSize = '11px';
+		help.style.margin = '4px 0 6px 0';
+		mxUtils.write(help, '{field} inserts a line field: size, service_code, sequence, pipe_class, insulation, ' +
+			'fluid or any custom field. A part in [ ] is left out when its field is empty.');
+		div.appendChild(help);
+
+		var start = addInput('First sequence number', settings.lineStart);
+		var digits = addInput('Minimum digits', settings.lineDigits);
+
+		function updatePreview()
+		{
+			preview.innerText = 'Example: ' + Lines.formatLine(pattern.value, {size: '6"', service_code: 'P',
+				sequence: '1001', pipe_class: 'A1A', insulation: 'H', fluid: 'HC'}) + '   (no insulation: ' +
+				Lines.formatLine(pattern.value, {size: '6"', service_code: 'P', sequence: '1001',
+				pipe_class: 'A1A'}) + ')';
+		};
+
+		mxEvent.addListener(pattern, 'input', updatePreview);
+		updatePreview();
+
+		addTitle('Service codes (CODE = description, one per line)');
+		var services = addArea(settings.serviceCodes);
+		addTitle('Pipe classes (CODE = description, one per line)');
+		var classes = addArea(settings.pipeClasses);
+
+		var dlg = new CustomDialog(ui, div, function()
+		{
+			var oldPattern = settings.linePattern;
+			var s = parseInt(start.value, 10);
+			var d = parseInt(digits.value, 10);
+			var graph = ui.editor.graph;
+
+			graph.model.beginUpdate();
+			try
+			{
+				Tags.setSettings(ui, {linePattern: pattern.value.trim() || Tags.DEFAULTS.linePattern,
+					lineStart: (isNaN(s) || s < 0) ? Tags.DEFAULTS.lineStart : s,
+					lineDigits: (isNaN(d) || d < 1) ? Tags.DEFAULTS.lineDigits : d,
+					serviceCodes: services.value, pipeClasses: classes.value});
+
+				if (Tags.getSettings(ui).linePattern != oldPattern)
+				{
+					var n = Lines.renumberAll(ui);
+					ui.editor.setStatus(n + ' line segment(s) updated to the new pattern');
+				}
+			}
+			finally
+			{
+				graph.model.endUpdate();
+			}
+
+			if (ui.format != null)
+			{
+				ui.format.refresh();
+			}
+		}, null, mxResources.get('apply'));
+
+		ui.showDialog(dlg.container, 480, 520, true, true);
+	};
+
 	function addActions(ui)
 	{
 		var graph = ui.editor.graph;
@@ -353,10 +478,51 @@
 		{
 			showSettings(ui);
 		});
+
+		ui.actions.addAction('pdLineSettings', function()
+		{
+			showLineSettings(ui);
+		});
+
+		ui.actions.addAction('pdJoinLines', function()
+		{
+			var n = ProcessDraw.Lines.join(ui, graph.getSelectionCells());
+
+			if (n == 0)
+			{
+				info(ui, 'Select two or more process line segments. They get the line number of the first ' +
+					'numbered segment.');
+			}
+			else
+			{
+				ui.editor.setStatus(n + ' segments joined');
+			}
+		});
+
+		ui.actions.addAction('pdSplitLine', function()
+		{
+			var number = ProcessDraw.Lines.split(ui, graph.getSelectionCells());
+
+			if (number == null)
+			{
+				info(ui, 'Select the process line segments that form the new line.');
+			}
+			else
+			{
+				ui.editor.setStatus('New line ' + number);
+			}
+		});
+
+		ui.actions.addAction('pdUpdateLines', function()
+		{
+			var n = ProcessDraw.Lines.renumberAll(ui);
+			ui.editor.setStatus(n + ' line segment(s) updated');
+		});
 	};
 
-	var MENU_ITEMS = ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-', 'pdCheckTags', '-',
-		'pdSettings', '-', 'processDrawAbout'];
+	var MENU_ITEMS = ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-', 'pdJoinLines',
+		'pdSplitLine', 'pdUpdateLines', '-', 'pdCheckTags', '-', 'pdSettings', 'pdLineSettings', '-',
+		'processDrawAbout'];
 
 	function addMenus(ui)
 	{
@@ -400,6 +566,16 @@
 			if (cells.length > 0)
 			{
 				menu.addSeparator();
+				var lines = cells.filter(ProcessDraw.Lines.isLine);
+
+				if (lines.length > 0)
+				{
+					this.addMenuItems(menu, (lines.length == 1) ? ['pdDataSheet', 'pdSplitLine'] :
+						['pdJoinLines', 'pdSplitLine'], null, evt);
+
+					return;
+				}
+
 				var items = (cells.length == 1) ? ['pdDataSheet', 'pdRenumber'] : ['pdRenumber'];
 
 				if (cells.length == 1 && Tags.attr(cells[0], 'pd_class') == 'equipment')

@@ -135,6 +135,70 @@
 			ok(ui.menus.get('processdraw') != null && ui.actions.get('pdRenumber') != null &&
 				ui.actions.get('pdCheckTags') != null, 'menu and actions registered');
 
+			// ---------------------------------------------------------- Line numbering (phase 3)
+			var Ln = ProcessDraw.Lines;
+			var parent = graph.getDefaultParent();
+
+			function line(src, trg)
+			{
+				return graph.addEdge(L.createCell(L.getSymbol('pd_line_main')), parent, src, trg);
+			};
+
+			function ln(edge)
+			{
+				return T.attr(edge, 'line_number');
+			};
+
+			var pumpL = insert('pd_pump_centrifugal', 100, 700);
+			var valveL = insert('pd_valve_gate', 250, 700);
+			var drumL = insert('pd_vessel_vertical', 400, 650);
+			var e1 = line(pumpL, valveL);
+			ok(T.attr(e1, 'sequence') == '1001' && ln(e1) == '?-?-1001-?', 'new line gets sequence 1001', ln(e1));
+			ok(T.attr(e1, 'from') == tag(pumpL), 'from filled with pump tag', T.attr(e1, 'from'));
+			var e2 = line(valveL, drumL);
+			ok(ln(e2) == ln(e1) && T.attr(e2, 'sequence') == '1001', 'line continues through valve', ln(e2));
+			ok(T.attr(e2, 'to') == tag(drumL), 'to filled with vessel tag', T.attr(e2, 'to'));
+			var n = Ln.update(ui, e1, {size: '4"', service_code: 'P', pipe_class: 'A1A'}, true);
+			ok(n == 2 && ln(e1) == '4"-P-1001-A1A' && ln(e2) == '4"-P-1001-A1A', 'update applies to both segments',
+				n + ' ' + ln(e1) + ' ' + ln(e2));
+			Ln.update(ui, e1, {insulation: 'H'}, false);
+			ok(ln(e1) == '4"-P-1001-A1A-H' && ln(e2) == '4"-P-1001-A1A', 'single segment update', ln(e1) + ' ' + ln(e2));
+			Ln.update(ui, e1, {insulation: ''}, false);
+			var e3 = line(drumL, pumpL);
+			ok(T.attr(e3, 'sequence') == '1002', 'next line 1002', T.attr(e3, 'sequence'));
+			Ln.split(ui, [e2]);
+			ok(T.attr(e2, 'sequence') == '1003' && T.attr(e1, 'sequence') == '1001', 'split gives new sequence',
+				T.attr(e2, 'sequence'));
+			Ln.join(ui, [e1, e2]);
+			ok(ln(e2) == ln(e1), 'join copies line', ln(e2));
+			Ln.setManualNumber(ui, e3, 'XYZ-1', false);
+			Ln.update(ui, e3, {size: '8"'}, false);
+			ok(ln(e3) == 'XYZ-1' && T.attr(e3, 'pd_line_manual') == '1', 'typed-in number kept', ln(e3));
+			Ln.useAutoNumber(ui, e3, false);
+			ok(ln(e3) == '8"-?-1002-?', 'use pattern again', ln(e3));
+			T.setSettings(ui, {linePattern: '{service_code}{sequence}'});
+			Ln.renumberAll(ui);
+			ok(ln(e1) == 'P1001', 'pattern change renumbers', ln(e1));
+			T.setSettings(ui, {linePattern: T.DEFAULTS.linePattern});
+			Ln.renumberAll(ui);
+			ok(ln(e1) == '4"-P-1001-A1A', 'default pattern restored', ln(e1));
+
+			// Line dropped without terminals is numbered when it gets connected
+			var loose = graph.importCells([L.createCell(L.getSymbol('pd_line_secondary'))], 0, 0, parent)[0];
+			ok(T.attr(loose, 'sequence') == '', 'loose line not numbered');
+			graph.connectCell(loose, pumpL, true);
+			ok(T.attr(loose, 'sequence') == '1003', 'numbered when connected (1003 is free again after join)', T.attr(loose, 'sequence'));
+
+			// Data tab for a line
+			graph.setSelectionCell(e1);
+			ui.format.immediateRefresh();
+			var lnInput = ui.format.container.querySelector('input[data-pd-field="line_number"]');
+			ok(lnInput != null && lnInput.value == '4"-P-1001-A1A', 'line number field in Data tab',
+				(lnInput != null) ? lnInput.value : 'none');
+			var svc = ui.format.container.querySelector('input[data-pd-field="service_code"]');
+			var list = (svc != null) ? document.getElementById(svc.getAttribute('list')) : null;
+			ok(list != null && list.options.length == 18, 'service code suggestions', (list != null) ? list.options.length : 'none');
+
 			// ISA decoding
 			ok(T.decodeIsa('FIC') == 'Flow Indicating Controller', 'ISA decode');
 		}
