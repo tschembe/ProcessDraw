@@ -350,6 +350,56 @@
 				});
 			});
 
+			// ---------------------------------------------------------- Drawing sheets (phase 7)
+			var SH = ProcessDraw.Sheet;
+			ui.selectPage(page1);
+			SH.insertFrame(ui, 'A3');
+			var sc = SH.findSheetCells(ui);
+			ok(graph.pageFormat.width == 1654 && graph.pageFormat.height == 1169, 'A3 page format',
+				graph.pageFormat.width + 'x' + graph.pageFormat.height);
+			ok(sc.frame != null && sc.titleblock != null && sc.revtable != null, 'frame, title block, revision table');
+			var tb = T.attr(sc.titleblock, 'label');
+			ok(tb.indexOf('1234-PID-001') >= 0 && tb.indexOf('1 OF ' + ui.pages.length) >= 0 && tb.indexOf('FEED') >= 0,
+				'title block filled', tb.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').substring(0, 200));
+			var fstyle = graph.getCellStyle(sc.frame);
+			var innerRight = 1654 - parseFloat(fstyle.pdMarginRight) - parseFloat(fstyle.pdZone);
+			var innerBottom = 1169 - parseFloat(fstyle.pdMarginBottom) - parseFloat(fstyle.pdZone);
+			var tg = sc.titleblock.geometry;
+			ok(Math.abs(tg.x + tg.width - innerRight) < 1 && Math.abs(tg.y + tg.height - innerBottom) < 1 && tg.height > 60,
+				'title block in bottom-right corner', JSON.stringify([tg.x, tg.y, tg.width, tg.height, innerRight, innerBottom]));
+			ok(Math.abs(sc.revtable.geometry.y + sc.revtable.geometry.height - tg.y) < 1, 'revision table above title block');
+			ok(graph.isCellLocked(sc.frame) && !graph.isCellMovable(sc.titleblock), 'frame locked');
+
+			ok(SH.nextRevision([], '') == 'A' && SH.nextRevision([{rev: 'H'}], '') == 'J' &&
+				SH.nextRevision([{rev: 'B'}], 'ISSUED FOR CONSTRUCTION') == '0' && SH.nextRevision([{rev: '0'}], '') == '1',
+				'next revision A, J (no I), 0 at IFC, 1');
+			T.setPageAttributes(ui, page1, {pd_revisions: JSON.stringify([{rev: 'A', date: '2026-11-01',
+				description: 'Issued for review', by: 'FN', chk: 'AB', app: 'CD'}]), pd_sheet_status: 'ISSUED FOR REVIEW'});
+			var rt = T.attr(sc.revtable, 'label');
+			ok(rt.indexOf('Issued for review') >= 0 && T.attr(sc.titleblock, 'label').indexOf('ISSUED FOR REVIEW') >= 0,
+				'revision table and status follow sheet data');
+			var revH = sc.revtable.geometry.height;
+			T.setPageAttributes(ui, page1, {pd_revisions: JSON.stringify([{rev: 'A', date: '2026-11-01', description: 'Issued for review'},
+				{rev: 'B', date: '2026-11-14', description: 'Issued for approval'}])});
+			ok(sc.revtable.geometry.height > revH && Math.abs(sc.revtable.geometry.y + sc.revtable.geometry.height - tg.y) < 1,
+				'revision table grows upwards');
+			ui.editor.undoManager.undo();
+			ok(T.attr(sc.revtable, 'label').indexOf('Issued for approval') < 0 && sc.revtable.geometry.height == revH,
+				'undo restores revision table');
+			T.setSettings(ui, {projectName: 'Stabiliser Revamp'});
+			ok(T.attr(sc.titleblock, 'label').indexOf('Stabiliser Revamp') >= 0, 'title block follows project data');
+
+			var tri = insert('pd_revtriangle', 300, 300);
+			ok(T.attr(tri, 'rev') == 'A', 'revision triangle gets current revision', T.attr(tri, 'rev'));
+			var stp = insert('pd_stamp_ifc', 400, 300);
+			ok(T.attr(stp, 'date') == new Date().toISOString().substring(0, 10), 'stamp dated today', T.attr(stp, 'date'));
+			ok(graph.view.getState(insert('pd_revcloud', 500, 300)).shape.constructor !== mxRectangleShape, 'revision cloud shape');
+
+			graph.dblClick(new MouseEvent('dblclick'), sc.titleblock);
+			ok(document.querySelector('.geDialog') != null && document.querySelector('.geDialog').innerText.indexOf('Revisions') >= 0,
+				'double-click title block opens sheet dialog');
+			ui.hideDialog();
+
 			// ISA decoding
 			ok(T.decodeIsa('FIC') == 'Flow Indicating Controller', 'ISA decode');
 		}

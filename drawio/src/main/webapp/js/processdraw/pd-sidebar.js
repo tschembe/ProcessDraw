@@ -9,7 +9,7 @@
 	var Library = ProcessDraw.Library;
 
 	var ORDER = ['pdVessels', 'pdTanks', 'pdHeatTransfer', 'pdRotating', 'pdSeparation', 'pdValves',
-		'pdFittings', 'pdLines', 'pdInstrumentsIsa', 'pdPrimaryElements', 'pdInstrumentsIec', 'pdAnnotations', 'pdPfd'];
+		'pdFittings', 'pdLines', 'pdInstrumentsIsa', 'pdPrimaryElements', 'pdInstrumentsIec', 'pdAnnotations', 'pdPfd', 'pdSheet'];
 
 	function getOrderedPalettes()
 	{

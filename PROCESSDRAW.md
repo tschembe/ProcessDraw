@@ -32,7 +32,7 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | `drawio/src/main/webapp/js/processdraw/` | **All ProcessDraw features** (symbols, smart objects, lists, ...) |
 | `drawio/src/main/webapp/js/processdraw/ProcessDraw.js` | Entry point: loads the modules below in order, registers with the editor via `Draw.loadPlugin` |
 | `.../processdraw/pd-stencil.js` | Symbol drawing language → stencil XML, embedded as `shape=stencil(...)` |
-| `.../processdraw/pd-shapes.js` | Signal line edge shapes (pneumatic, hydraulic, capillary, data link); also loaded by `export3.html` |
+| `.../processdraw/pd-shapes.js` | Custom shapes: signal lines, drawing frame (`pd_frame`), revision cloud (`pd_revcloud`); also loaded by `export3.html` |
 | `.../processdraw/pd-library.js` | Palette registry, engineering data templates, cell creation |
 | `.../processdraw/pd-symbols-*.js` | Symbol definitions (equipment, piping/valves/lines, instruments) |
 | `.../processdraw/pd-sidebar.js` | Puts the ProcessDraw palettes above the General palette |
@@ -44,6 +44,7 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | `.../processdraw/pd-pfd.js` | Stream markers, H&MB tables and editor, equipment summaries, PFD palette |
 | `.../processdraw/pd-xlsx.js` | Minimal XLSX writer (zipped with draw.io's JSZip) |
 | `.../processdraw/pd-lists.js` | Equipment / line / instrument / valve / specials / stream lists, Project Check |
+| `.../processdraw/pd-sheet.js` | Drawing frames, title block, revision table, revision clouds/triangles, stamps |
 | `.../processdraw/pd-actions.js` | ProcessDraw menu, right-click items, renumber/spare/check/settings commands |
 | `.../processdraw/pd-selftest.js` | In-app self-test, only loaded with `pdtest=1` |
 | `tools/symbol-sheet.cjs` | Builds a sheet with all symbols; `npm run symbols` → `symbols.png` |
@@ -88,6 +89,9 @@ Off-page connectors are linked by a shared `connector_id` (C01, C02, ...).
 Stream settings: `pd_stream_start`, `pd_components` (one per line), `pd_comp_basis`. Stream markers
 store components as `comp_<name>` attributes. H&MB tables and equipment summaries keep their generated
 HTML in `label` and are rebuilt in the model's BEFORE_UNDO event (same undo step as the change).
+Drawing sheets: per page `pd_sheet_status`, `pd_sheet_scale`, `pd_drawn_by`, `pd_checked_by`,
+`pd_approved_by`, `pd_sheet_size`, `pd_revisions` (JSON). Frame, title block and revision table are
+locked cells (`pd_class` frame / titleblock / revtable) at the back of the page.
 
 ### Numbering settings
 
@@ -133,4 +137,4 @@ in the outer repo.
 | 4 | Multi-sheet project, off-page connectors, project-wide tag uniqueness | done |
 | 5 | PFD stream markers + heat and material balance tables | done |
 | 6 | Excel equipment/line/instrument/valve lists + consistency checker | done |
-| 7 | Drawing sheets: title block, revision table, revision clouds, IFR/IFC stamps | |
+| 7 | Drawing sheets: title block, revision table, revision clouds, IFR/IFC stamps | done |

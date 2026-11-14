@@ -537,7 +537,7 @@
 
 	var MENU_ITEMS = ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-', 'pdJoinLines',
 		'pdSplitLine', 'pdUpdateLines', '-', 'pdAddStream', 'pdAddHmb', 'pdEditHmb', 'pdAddSummary', '-', 'pdLinkOffpage', 'pdGoToPartner', 'pdUpdateOffpage', '-',
-		'pdProjectCheck', 'pdExportLists', '-', 'pdProjectSettings', 'pdSheets', 'pdSettings', 'pdLineSettings', 'pdHmbSettings', '-',
+		'pdProjectCheck', 'pdExportLists', '-', 'pdDrawingSheet', 'pdExportSheetsPdf', '-', 'pdProjectSettings', 'pdSheets', 'pdSettings', 'pdLineSettings', 'pdHmbSettings', '-',
 		'processDrawAbout'];
 
 	function addMenus(ui)

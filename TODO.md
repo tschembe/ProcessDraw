@@ -120,12 +120,20 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [ ] User test: open the exported workbook in Excel / LibreOffice
 - [ ] Later: Excel import (round trip), choose which lists / columns, per-sheet lists
 
-## Phase 7 — Drawing sheets
-- [ ] A3 / A1 sheet templates with border and grid references
-- [ ] Title block (project data fields auto-filled)
-- [ ] Revision table + revision clouds
-- [ ] IFR / IFA / IFC stamps
-- [ ] Print/PDF of all sheets with title blocks
+## Phase 7 — Drawing sheets ✅
+- [x] A4 / A3 / A2 / A1 / A0 landscape frames (ISO 5457 margins, grid references 1… / A… without I and O),
+      page size set to match (undoable), frame adapts to dark mode
+- [x] Title block (180 mm, bottom right) filled from project and sheet data: client, project, plant/unit,
+      prepared by, title, type, drawing no., sheet x of y, revision, status, scale, date, drawn/checked/approved, size
+- [x] Revision table above the title block (newest on top), grows upwards
+- [x] Drawing Sheet & Revisions dialog (double-click the title block): frame size, status, scale, names,
+      revisions with suggested next revision (A, B … skipping I and O; 0, 1 … from IFC)
+- [x] Title block / revision table update in the same undo step as the data and when a sheet is shown
+- [x] Palette: revision cloud (constant scallop size), revision triangle (current revision),
+      stamps IFR / IFA / IFD / IFC / As-Built / Preliminary / Hold / Void (dated today), notes block
+- [x] Export Sheets to PDF (draw.io PDF export; verified: A3 page with frame, title block, cloud)
+- [x] Tests: in-app self-test 98 checks; PDF exported through the CLI and checked
+- [ ] User test: print / PDF of a multi-sheet project
 
 ## Later
 - [ ] Excel import (round-trip edits)

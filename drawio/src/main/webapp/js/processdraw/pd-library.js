@@ -78,7 +78,8 @@
 			obj.setAttribute('pd_tag_prefix', sym.prefix);
 		}
 
-		var untagged = {line: 1, signal: 1, fitting: 1, annotation: 1, offpage: 1, stream: 1, hmb: 1, summary: 1};
+		var untagged = {line: 1, signal: 1, fitting: 1, annotation: 1, offpage: 1, stream: 1, hmb: 1, summary: 1,
+			stamp: 1, revision: 1, frame: 1, titleblock: 1, revtable: 1};
 
 		if (!untagged[sym.cls])
 		{

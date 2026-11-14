@@ -380,6 +380,19 @@
 				});
 			}
 
+			if ((cls == 'frame' || cls == 'titleblock' || cls == 'revtable') && ProcessDraw.Sheet != null)
+			{
+				addButton(buttons, 'Drawing sheet...', 'Title block data, status and revisions (double-click)', function()
+				{
+					if (inDialog)
+					{
+						ui.hideDialog();
+					}
+
+					ProcessDraw.Sheet.showDialog(ui);
+				});
+			}
+
 			if (cls == 'hmb' && ProcessDraw.PFD != null)
 			{
 				addButton(buttons, 'Edit values...', 'Edit the stream data in a table (double-click)', function()

@@ -120,7 +120,11 @@
 		viscosity: {label: 'Viscosity', q: 'viscosity'},
 		hmb_scope: {label: 'Streams shown', options: ['page|streams on this sheet', 'all|streams on all sheets']},
 		hmb_layout: {label: 'Layout', options: ['columns|one column per stream', 'rows|one row per stream']},
-		hmb_hide_empty: {label: 'Hide empty rows', options: ['1|yes', '0|no']}
+		hmb_hide_empty: {label: 'Hide empty rows', options: ['1|yes', '0|no']},
+		status: {label: 'Status', options: ['PRELIMINARY', 'ISSUED FOR REVIEW', 'ISSUED FOR APPROVAL',
+			'ISSUED FOR DESIGN', 'ISSUED FOR CONSTRUCTION', 'AS-BUILT', 'HOLD', 'VOID']},
+		date: {label: 'Date'},
+		rev: {label: 'Revision'}
 	};
 
 	// Readable names for pd_class values
@@ -129,7 +133,8 @@
 		equipment: 'Equipment', valve: 'Valve', instrument: 'Instrument', special: 'Special Item',
 		fitting: 'Fitting', line: 'Process Line', signal: 'Signal Line', offpage: 'Off-Page Connector',
 		annotation: 'Annotation', stream: 'Stream', hmb: 'Heat & Material Balance',
-		summary: 'Equipment Summary'
+		summary: 'Equipment Summary', stamp: 'Stamp', revision: 'Revision Marker', frame: 'Drawing Frame',
+		titleblock: 'Title Block', revtable: 'Revision Table'
 	};
 
 	ProcessDraw.Fields =
