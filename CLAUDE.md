@@ -3,7 +3,8 @@
 > **This checkout is ProcessDraw**, a PFD/P&ID fork. Read `PROCESSDRAW.md` first: it lists
 > where ProcessDraw code lives (`drawio/src/main/webapp/js/processdraw/`), every upstream file
 > we changed, the roadmap, and rules (e.g. always `npm run sync -- disableUpdate`).
-> Upstream conventions below (code style etc.) still apply.
+> Upstream conventions below (code style etc.) still apply. In this repository `drawio/` is a normal
+> folder (not a submodule), so the clone and submodule notes below do not apply.
 
 ## Project Overview
 

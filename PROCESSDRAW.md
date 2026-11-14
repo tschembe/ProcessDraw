@@ -126,13 +126,23 @@ symbol does not change diagrams that already use it.
 
 ## Git layout
 
-Two repositories, each on branch `processdraw`:
+One repository: https://github.com/tschembe/ProcessDraw (private), branch `main`.
+`drawio/` (the editor) is a normal folder, no longer a submodule. The first commit is the
+unmodified upstream import (jgraph/drawio-desktop 0623fb3 + jgraph/drawio 32.6.10); every later
+commit is ProcessDraw work.
 
-- `processdraw/` (desktop wrapper), remote `upstream` = jgraph/drawio-desktop
-- `processdraw/drawio/` (editor, submodule), remote `upstream` = jgraph/drawio
+```bash
+git clone https://github.com/tschembe/ProcessDraw.git
+cd ProcessDraw && npm install && npm start
+```
 
-Commit editor changes inside `drawio/` first, then commit the updated submodule pointer
-in the outer repo.
+### Updating to a newer draw.io
+
+1. Download the new drawio-desktop and drawio releases.
+2. Copy them over the repository (keep `drawio/src/main/webapp/js/processdraw/`, `tools/`,
+   `PROCESSDRAW.md`, `TODO.md`).
+3. Re-apply the changes listed in "Changes to upstream files" above, run `npm run sync -- disableUpdate`,
+   the tests and the self-test, then commit.
 
 ## Roadmap
 

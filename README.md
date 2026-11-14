@@ -1,3 +1,21 @@
+ProcessDraw
+-----------
+
+**ProcessDraw** is a desktop PFD and P&ID editor for process engineers, built on draw.io desktop:
+ISO 10628 / ISA 5.1 / IEC 62424 symbol libraries with engineering data, automatic tag and line
+numbering, multi-sheet projects with linked off-page connectors, PFD stream tables (H&MB), Excel
+equipment/line/instrument/valve lists, a project checker and drawing sheets with title blocks and
+revisions. All features are in the **ProcessDraw** menu.
+
+```bash
+npm install
+npm start
+```
+
+See [PROCESSDRAW.md](PROCESSDRAW.md) for setup, code layout and tests, and [TODO.md](TODO.md) for the
+roadmap. ProcessDraw is based on [drawio-desktop](https://github.com/jgraph/drawio-desktop) (GPL v3)
+and [draw.io](https://github.com/jgraph/drawio) (Apache 2.0); the original README follows.
+
 About
 ----- 
 
