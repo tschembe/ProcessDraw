@@ -1,6 +1,7 @@
 /**
  * Copyright (c) 2006-2024, JGraph Holdings Ltd
  * Copyright (c) 2006-2024, draw.io AG
+ * Modified 2026 by ProcessDraw: loads js/processdraw/ProcessDraw.js. See PROCESSDRAW.md.
  */
 // null'ing of global vars need to be after init.js
 window.ICONSEARCH_PATH = null;

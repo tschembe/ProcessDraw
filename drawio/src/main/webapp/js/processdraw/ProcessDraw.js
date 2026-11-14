@@ -10,6 +10,9 @@
 
 	ProcessDraw.VERSION = '0.8.0';
 	ProcessDraw.NAME = 'ProcessDraw';
+	// Where recipients get the complete source code (GPL v3 section 6). Must be reachable
+	// by everyone you give ProcessDraw to: make the repository public before distributing.
+	ProcessDraw.SOURCE_URL = 'https://github.com/tschembe/ProcessDraw';
 
 	// Window title and other places that show the application name
 	if (typeof Editor !== 'undefined')
@@ -41,11 +44,35 @@
 		p2.style.fontSize = '11px';
 		p2.style.color = 'gray';
 		mxUtils.write(p2, 'Based on draw.io ' + EditorUi.VERSION +
-			' (Apache 2.0) and drawio-desktop (GPL v3).');
+			' (Apache 2.0, copyright draw.io Ltd and draw.io AG) and drawio-desktop (GPL v3).');
 		div.appendChild(p2);
 
+		var p3 = document.createElement('p');
+		p3.style.fontSize = '11px';
+		p3.style.color = 'gray';
+		mxUtils.write(p3, 'ProcessDraw is free software under the GNU General Public License v3, ' +
+			'WITHOUT ANY WARRANTY. Source code: ');
+		var link = document.createElement('a');
+		link.setAttribute('href', ProcessDraw.SOURCE_URL);
+		link.setAttribute('target', '_blank');
+		mxEvent.addListener(link, 'click', function(evt)
+		{
+			ui.openLink(ProcessDraw.SOURCE_URL);
+			mxEvent.consume(evt);
+		});
+		mxUtils.write(link, ProcessDraw.SOURCE_URL);
+		p3.appendChild(link);
+		div.appendChild(p3);
+
+		var p4 = document.createElement('p');
+		p4.style.fontSize = '11px';
+		p4.style.color = 'gray';
+		mxUtils.write(p4, 'draw.io is a registered trademark of draw.io Ltd. ' +
+			'ProcessDraw is not affiliated with or endorsed by draw.io.');
+		div.appendChild(p4);
+
 		ui.showDialog(new CustomDialog(ui, div, null, null, mxResources.get('close')).container,
-			360, 160, true, true);
+			400, 290, true, true);
 	};
 
 	ProcessDraw.init = function(ui)

@@ -51,5 +51,6 @@
     "quicklookjs": "^1.0.1",
     "sumchecker": "^3.0.1"
   },
-  "productName": "ProcessDraw"
+  "productName": "ProcessDraw",
+  "desktopName": "processdraw.desktop"
 }

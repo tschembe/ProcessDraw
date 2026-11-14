@@ -1,0 +1,36 @@
+ProcessDraw
+Copyright 2026 ProcessDraw
+
+ProcessDraw is licensed under the GNU General Public License version 3 only
+(see LICENSE). It comes with ABSOLUTELY NO WARRANTY.
+
+ProcessDraw is a modified version of the following works.
+
+drawio-desktop
+  https://github.com/jgraph/drawio-desktop (commit 0623fb3)
+  Copyright 2017-2026 draw.io Ltd (previously JGraph Ltd)
+  GNU General Public License version 3 only (see LICENSE)
+
+draw.io (in drawio/)
+  https://github.com/jgraph/drawio (version 32.6.10)
+  Copyright 2005-2026 JGraph Holdings Ltd / draw.io Ltd and draw.io AG
+  Apache License 2.0 (see drawio/LICENSE)
+  Third-party libraries bundled with draw.io keep their own license headers.
+
+Files changed from upstream
+  Every changed upstream source file carries a "Modified 2026 by ProcessDraw"
+  notice. The complete list, with the reason for each change, is in
+  PROCESSDRAW.md under "Changes to upstream files". All ProcessDraw code is in
+  drawio/src/main/webapp/js/processdraw/ and tools/. The application icons in
+  build/ are ProcessDraw's own (tools/make-icon.py); the draw.io logo is not used.
+
+Runtime components
+  Electron and Chromium: MIT and others, license texts shipped with every build
+  (LICENSE.electron.txt, LICENSES.chromium.html). npm dependencies (MIT, ISC,
+  BSD, 0BSD, Python-2.0, BlueOak-1.0.0) ship with their license files inside the
+  application package.
+
+Trademark
+  draw.io is a registered EU trademark (#018062448) of draw.io Ltd. ProcessDraw is
+  not affiliated with, endorsed by or sponsored by draw.io. Neither the GPL nor the
+  Apache License grants any rights to the draw.io name or logo.

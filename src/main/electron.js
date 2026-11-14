@@ -1,3 +1,4 @@
+// Modified 2026 by ProcessDraw (fork of jgraph/drawio-desktop, GPL v3): ProcessDraw window icon, macOS About panel, product name in dialogs and PDF creator. See PROCESSDRAW.md.
 import fs from 'fs';
 import { promises as fsProm } from 'fs';
 import path from 'path';
@@ -350,8 +351,8 @@ async function confirmConfigPaths(webContents, entries)
 	{
 		type: 'warning',
 		title: 'Configuration',
-		message: 'Allow draw.io to read the files named in its configuration?',
-		detail: 'Extras > Configuration names local files that draw.io has not been allowed to read:\n\n' +
+		message: 'Allow ProcessDraw to read the files named in its configuration?',
+		detail: 'Extras > Configuration names local files that ProcessDraw has not been allowed to read:\n\n' +
 			names.join('\n') + '\n\nOnly allow this if you added them to the configuration yourself.',
 		buttons: ['Allow', 'Don\'t Allow'],
 		defaultId: 1,
@@ -542,7 +543,7 @@ function createWindow (opt = {})
 		backgroundColor: nativeTheme.shouldUseDarkColors ? '#1B1D1E' : '#F1F3F4',
 		width: lastWinSize.width,
 		height: lastWinSize.height,
-		icon: `${codeDir}/images/drawlogo256.png`,
+		icon: `${codeDir}/images/processdraw256.png`,
 		webPreferences: {
 			preload: `${__dirname}/electron-preload.js`,
 			spellcheck: enableSpellCheck,
@@ -1879,17 +1880,18 @@ app.whenReady().then(() =>
 
 	if (isMac)
 	{
+		app.setAboutPanelOptions({
+			applicationName: app.name,
+			applicationVersion: app.getVersion(),
+			copyright: 'Free software under the GNU GPL v3. No warranty.',
+			credits: 'Based on draw.io (Apache 2.0) and drawio-desktop (GPL v3). ' +
+				'draw.io is a trademark of draw.io Ltd; ProcessDraw is not affiliated with or endorsed by draw.io.'
+		});
+
 	    let template = [{
 	      label: app.name,
 	      submenu: [
-	        {
-	          label: 'About ' + app.name,
-	          click() { shell.openExternal('https://www.drawio.com'); }
-	        },
-	        {
-	          label: 'Support',
-	          click() { shell.openExternal('https://github.com/jgraph/drawio-desktop/issues'); }
-			},
+	        { role: 'about' },
 			...(updateMode != 'off' ? [checkForUpdates, restartToUpdateItem,
 				autoCheckForUpdates, setUpdateInterval] : []),
 	        { type: 'separator' },
@@ -2695,7 +2697,7 @@ async function mergePdfs(pdfFiles, xml, annots)
 
 	// Converts to PDF 1.7 with compression
 	const pdfDoc = await PDFDocument.load(pdfFiles[0]);
-	pdfDoc.setCreator('diagrams.net');
+	pdfDoc.setCreator('ProcessDraw');
 
 	// KNOWN: Attachments produce smaller files but break
 	// internal links in pdf-lib so using Subject for now

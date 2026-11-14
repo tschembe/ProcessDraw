@@ -1,6 +1,7 @@
 /**
  * Copyright (c) 2020-2025, JGraph Holdings Ltd
  * Copyright (c) 2020-2025, draw.io AG
+ * Modified 2026 by ProcessDraw: mxIsElectron also accepts the ProcessDraw user agent. See PROCESSDRAW.md.
  */
 var mxIsElectron = navigator.userAgent != null &&
 	navigator.userAgent.toLowerCase().indexOf(' electron/') > -1 && 

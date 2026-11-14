@@ -1,7 +1,12 @@
 {
-  "appId": "com.jgraph.drawio.desktop",
-  "copyright": "Copyright 2017-2026 draw.io Ltd",
+  "appId": "com.processdraw.desktop",
+  "copyright": "Copyright 2026 ProcessDraw. Based on draw.io, copyright 2005-2026 draw.io Ltd and draw.io AG",
   "asar": true,
+  "extraFiles": [
+    { "from": "LICENSE", "to": "LICENSE.ProcessDraw.txt" },
+    { "from": "NOTICE", "to": "NOTICE.ProcessDraw.txt" },
+    { "from": "drawio/LICENSE", "to": "LICENSE.drawio.txt" }
+  ],
   "files": [
     "**/*",
     "!**/WEB-INF{,/**}",
@@ -23,13 +28,13 @@
   },
   "npmRebuild": false,
   "linux": {
-  	"executableName": "drawio",
+  	"executableName": "processdraw",
     "category": "Graphics",
-    "maintainer": "draw.io <snap@draw.io>",
+    "maintainer": "ProcessDraw <noreply@processdraw.invalid>",
     "icon": "./build",
     "desktop": {
       "entry": {
-        "StartupWMClass": "draw-io"
+        "StartupWMClass": "ProcessDraw"
       }
     },
     "target": [
@@ -51,8 +56,8 @@
   "fileAssociations": [
 	  {
 	  	"ext": "drawio",
-	  	"name": "draw.io Diagram",
-	  	"description": "draw.io Diagram",
+	  	"name": "Diagram (.drawio)",
+	  	"description": "Diagram (.drawio)",
 	  	"mimeType": "application/vnd.jgraph.mxfile",
 	  	"role": "Editor"
 	  },
