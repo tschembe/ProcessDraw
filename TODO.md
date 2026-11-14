@@ -102,13 +102,23 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [ ] Later: import a stream table file (CSV) by stream number; copied summaries keep pointing at the
       original equipment
 
-## Phase 6 — Lists & checks
-- [ ] Equipment list → .xlsx
-- [ ] Line list → .xlsx
-- [ ] Instrument index → .xlsx
-- [ ] Valve list → .xlsx
-- [ ] Consistency checker: duplicate tags, unconnected nozzles, missing data, lines without number
-- [ ] Results panel with click-to-locate
+## Phase 6 — Lists & checks ✅
+- [x] Export Lists to Excel: one .xlsx workbook (own writer, no new dependency) with project header,
+      units in column headers, frozen header row, filters, column widths, numbers as numbers
+- [x] Equipment list (all equipment data, readable equipment types)
+- [x] Line list (one row per line number, segments merged, service and pipe class descriptions,
+      From / To without the inline items, sheets, segment count)
+- [x] Instrument index (instruments + control / on-off / safety valves, ISA descriptions, connected line)
+- [x] Valve list (tagged and untagged valves, positions, actuator, set pressure, connected line)
+- [x] Specials list, Streams (H&MB) sheet, Check sheet
+- [x] Project Check window (stays open): duplicate tags, unnumbered items, unconnected equipment, open
+      valve/fitting ends, dangling lines, missing / incomplete line numbers, missing service, fail position
+      or set pressure, off-page connector problems, duplicate stream numbers; click selects the item
+      on any sheet; Recheck
+- [x] Tests: `npm run test:pd` (11 unit tests incl. XLSX writer), self-test 83 checks, workbook verified
+      with openpyxl
+- [ ] User test: open the exported workbook in Excel / LibreOffice
+- [ ] Later: Excel import (round trip), choose which lists / columns, per-sheet lists
 
 ## Phase 7 — Drawing sheets
 - [ ] A3 / A1 sheet templates with border and grid references

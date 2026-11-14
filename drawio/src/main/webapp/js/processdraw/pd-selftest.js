@@ -5,7 +5,7 @@
  */
 (function()
 {
-	function run(ui)
+	async function run(ui)
 	{
 		var T = ProcessDraw.Tags;
 		var L = ProcessDraw.Library;
@@ -302,6 +302,53 @@
 			T.setAttributes(graph, drumS, {design_pressure: '16'});
 			ok(T.attr(sum, 'label').indexOf('16 barg') >= 0, 'summary follows equipment change');
 			ui.selectPage(page1);
+
+			// ---------------------------------------------------------- Lists and project check (phase 6)
+			var LS = ProcessDraw.Lists;
+			var sheets = LS.getSheets(ui);
+			var names = sheets.map(function(s) { return s.name; });
+			ok(names.join(',') == 'Equipment,Lines,Instruments,Valves,Specials,Streams,Check', 'workbook sheets', names.join(','));
+			var eqList = sheets[0];
+			ok(eqList.rows.some(function(r) { return r[0] == tag(p1); }) &&
+				eqList.columns.some(function(c) { return c.header == 'Design pressure [barg]'; }), 'equipment list with units');
+			var lineRows = sheets[1].rows.filter(function(r) { return r[0] == ln(e1); });
+			ok(lineRows.length == 1 && lineRows[0][12] == Ln.getSegments(ui, ln(e1)).length && lineRows[0][12] >= 2,
+				'line list merges segments', JSON.stringify(lineRows));
+			ok(lineRows.length == 1 && lineRows[0][9] == tag(pumpL), 'line list From', lineRows.length ? lineRows[0][9] : '');
+			var instRows = sheets[2].rows;
+			ok(instRows.some(function(r) { return r[0] == 'PDIT-205' && r[3] == 'Pressure Differential Indicating Transmitter'; }),
+				'instrument index with ISA description');
+			ok(instRows.some(function(r) { return r[0] == tag(cv); }), 'control valve in instrument index');
+			ok(sheets[3].rows.some(function(r) { return r[0] == '' && r[1] == 'Gate Valve'; }), 'untagged gate valve in valve list');
+
+			var issues = LS.runChecks(ui);
+			var has = function(cell, text) { return issues.some(function(i) { return i.cell == cell && i.problem.indexOf(text) >= 0; }); };
+			ok(has(loose, 'Line end not connected'), 'check: dangling line');
+			ok(has(lonely, 'Not linked'), 'check: unlinked connector');
+			ok(has(cv, 'Fail position missing') && has(gv, 'ends connected'), 'check: valve data and open ends');
+			ok(has(e3, 'incomplete'), 'check: incomplete line number');
+
+			var wnd = LS.showCheckWindow(ui);
+			var rowsShown = wnd.window.div.querySelectorAll('span[title], div[title="Show this item"]').length;
+			ok(wnd.window.isVisible() && rowsShown == issues.length, 'check window lists issues', rowsShown + ' / ' + issues.length);
+			var firstRow = wnd.window.div.querySelector('div[title="Show this item"]');
+			firstRow.click();
+			ok(graph.getSelectionCell() == issues[0].cell, 'click selects the item');
+			wnd.window.setVisible(false);
+
+			await new Promise(function(resolve)
+			{
+				ProcessDraw.Xlsx.toBase64(sheets, {title: 'selftest'}, function(data)
+				{
+					ok(atob(data).substring(0, 2) == 'PK', 'xlsx zipped');
+					console.log('PDTEST XLSX ' + data);
+					resolve();
+				}, function(e)
+				{
+					ok(false, 'xlsx zipped', e.message);
+					resolve();
+				});
+			});
 
 			// ISA decoding
 			ok(T.decodeIsa('FIC') == 'Flow Indicating Controller', 'ISA decode');

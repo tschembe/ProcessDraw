@@ -42,6 +42,8 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | `.../processdraw/pd-lines.js` | Line number pattern, automatic sequence, continuation through inline items, join/split |
 | `.../processdraw/pd-project.js` | Sheets, project settings, linked off-page connectors, jump, connector check |
 | `.../processdraw/pd-pfd.js` | Stream markers, H&MB tables and editor, equipment summaries, PFD palette |
+| `.../processdraw/pd-xlsx.js` | Minimal XLSX writer (zipped with draw.io's JSZip) |
+| `.../processdraw/pd-lists.js` | Equipment / line / instrument / valve / specials / stream lists, Project Check |
 | `.../processdraw/pd-actions.js` | ProcessDraw menu, right-click items, renumber/spare/check/settings commands |
 | `.../processdraw/pd-selftest.js` | In-app self-test, only loaded with `pdtest=1` |
 | `tools/symbol-sheet.cjs` | Builds a sheet with all symbols; `npm run symbols` → `symbols.png` |
@@ -68,7 +70,7 @@ the app would try to install official draw.io updates over ProcessDraw.
 ## Tests
 
 ```bash
-npm run test:pd        # tag parsing, ISA decoding, line patterns (Node)
+npm run test:pd        # tag parsing, ISA decoding, line patterns, XLSX writer (Node)
 npm run symbols        # all symbols → symbols.png
 # In-app self-test on an empty diagram (inserts symbols, numbers, renumbers, opens dialogs):
 echo '{"pdtest": "1"}' > urlParams.json
@@ -130,5 +132,5 @@ in the outer repo.
 | 3 | Configurable line numbering spec | done |
 | 4 | Multi-sheet project, off-page connectors, project-wide tag uniqueness | done |
 | 5 | PFD stream markers + heat and material balance tables | done |
-| 6 | Excel equipment/line/instrument/valve lists + consistency checker | |
+| 6 | Excel equipment/line/instrument/valve lists + consistency checker | done |
 | 7 | Drawing sheets: title block, revision table, revision clouds, IFR/IFC stamps | |
