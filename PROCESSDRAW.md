@@ -25,6 +25,14 @@ sudo chown root:root node_modules/electron/dist/chrome-sandbox
 sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 ```
 
+## Where to find the features
+
+**ProcessDraw** menu in the menu bar (between Extras and Help; in the simple theme at the top of the
+main menu). Frequent commands first, then submenus: Tags & Equipment, Line Numbers, PFD & Heat and
+Material Balance, Sheets & Off-Page Connectors, Lists & Checks, Settings, plus **Quick Guide** (all
+features by phase with buttons). Right-click on symbols, lines, connectors and tables shows the
+matching commands. The menu is defined in `pd-actions.js` (`SUBMENUS`, `fillMainMenu`).
+
 ## Where the ProcessDraw code lives
 
 | Path | Purpose |

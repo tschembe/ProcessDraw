@@ -131,6 +131,25 @@
 			ok(dlgForm != null, 'double-click opens data sheet');
 			ui.hideDialog();
 
+			// ProcessDraw in the menubar, in front of Help, with one submenu per feature area
+			if (ui.menubar != null)
+			{
+				var mb = Array.prototype.map.call(ui.menubar.container.children, function(e) { return e.innerText; });
+				ok(mb.indexOf('ProcessDraw') >= 0 && mb.indexOf('ProcessDraw') == mb.indexOf(mxResources.get('help')) - 1,
+					'ProcessDraw menu before Help', mb.join('|'));
+				var pdItem = ui.menubar.container.children[mb.indexOf('ProcessDraw')];
+				var helpItem = ui.menubar.container.children[mb.indexOf(mxResources.get('help'))];
+				var pr = pdItem.getBoundingClientRect();
+				var hr = helpItem.getBoundingClientRect();
+				ok(pdItem.className == helpItem.className && Math.abs(pr.top - hr.top) < 2 && pr.right <= hr.left + 1 &&
+					pr.width > 20 && pr.width < 200, 'ProcessDraw menu visible next to Help',
+					JSON.stringify([pdItem.className, pr.left, pr.top, pr.width, hr.left, hr.top]));
+			}
+
+			ok(['pdMenuTags', 'pdMenuLines', 'pdMenuPfd', 'pdMenuSheets', 'pdMenuLists', 'pdMenuSettings']
+				.every(function(n) { return ui.menus.get(n) != null; }) && ui.actions.get('pdQuickGuide') != null,
+				'feature submenus and quick guide');
+
 			// Menus and actions exist
 			ok(ui.menus.get('processdraw') != null && ui.actions.get('pdRenumber') != null &&
 				ui.actions.get('pdCheckTags') != null, 'menu and actions registered');

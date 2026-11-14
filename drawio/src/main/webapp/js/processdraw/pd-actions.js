@@ -535,16 +535,137 @@
 		});
 	};
 
-	var MENU_ITEMS = ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-', 'pdJoinLines',
-		'pdSplitLine', 'pdUpdateLines', '-', 'pdAddStream', 'pdAddHmb', 'pdEditHmb', 'pdAddSummary', '-', 'pdLinkOffpage', 'pdGoToPartner', 'pdUpdateOffpage', '-',
-		'pdProjectCheck', 'pdExportLists', '-', 'pdDrawingSheet', 'pdExportSheetsPdf', '-', 'pdProjectSettings', 'pdSheets', 'pdSettings', 'pdLineSettings', 'pdHmbSettings', '-',
-		'processDrawAbout'];
+	/**
+	 * ProcessDraw menu: frequent commands first, then one submenu per feature area.
+	 */
+	var SUBMENUS =
+	[
+		['pdMenuTags', 'Tags & Equipment', ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-',
+			'pdAddSummary', '-', 'pdSettings']],
+		['pdMenuLines', 'Line Numbers', ['pdJoinLines', 'pdSplitLine', 'pdUpdateLines', '-', 'pdLineSettings']],
+		['pdMenuPfd', 'PFD & Heat and Material Balance', ['pdAddStream', 'pdAddHmb', 'pdEditHmb', '-', 'pdAddSummary',
+			'-', 'pdHmbSettings']],
+		['pdMenuSheets', 'Sheets & Off-Page Connectors', ['pdSheets', 'pdDrawingSheet', '-', 'pdLinkOffpage',
+			'pdGoToPartner', 'pdUpdateOffpage', '-', 'pdExportSheetsPdf']],
+		['pdMenuLists', 'Lists & Checks', ['pdProjectCheck', 'pdExportLists']],
+		['pdMenuSettings', 'Settings', ['pdProjectSettings', 'pdSettings', 'pdLineSettings', 'pdHmbSettings']]
+	];
+
+	function fillMainMenu(ui, menu, parent)
+	{
+		ui.menus.addMenuItems(menu, ['pdDataSheet', 'pdProjectCheck', 'pdExportLists', 'pdDrawingSheet', '-'], parent);
+
+		for (var i = 0; i < SUBMENUS.length; i++)
+		{
+			if (i == SUBMENUS.length - 1)
+			{
+				menu.addSeparator(parent);
+			}
+
+			ui.menus.addSubmenu(SUBMENUS[i][0], menu, parent, SUBMENUS[i][1]);
+		}
+
+		ui.menus.addMenuItems(menu, ['-', 'pdQuickGuide', 'processDrawAbout'], parent);
+	};
+
+	/**
+	 * Quick guide: the features of all phases with buttons that run them.
+	 */
+	function showQuickGuide(ui)
+	{
+		var sections =
+		[
+			['Symbols', 'Drag P&ID and PFD symbols from the "ProcessDraw /" palettes on the left (ISO 10628, ISA 5.1, ' +
+				'IEC 62424). Search works too, e.g. "psv" or "kettle".', []],
+			['Tags & data', 'New and copied items are numbered automatically (P-101, V-101, FIC-101). Select a symbol to ' +
+				'see its data in the Data tab on the right, or double-click it for the data sheet.',
+				['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', 'pdSettings']],
+			['Line numbers', 'Lines are numbered when connected, from the project pattern, and keep their number ' +
+				'through valves and across sheets.', ['pdJoinLines', 'pdSplitLine', 'pdUpdateLines', 'pdLineSettings']],
+			['Sheets', 'Every page is a sheet. Link off-page connectors in pairs; double-click one to jump to its partner.',
+				['pdSheets', 'pdLinkOffpage', 'pdGoToPartner', 'pdUpdateOffpage', 'pdProjectSettings']],
+			['PFD & H&MB', 'Put stream numbers on lines, insert a heat and material balance table that fills itself, ' +
+				'add equipment summaries.', ['pdAddStream', 'pdAddHmb', 'pdEditHmb', 'pdAddSummary', 'pdHmbSettings']],
+			['Lists & checks', 'Export equipment, line, instrument and valve lists to Excel; check the project for ' +
+				'missing data and open ends.', ['pdProjectCheck', 'pdExportLists']],
+			['Drawing sheets', 'Add a frame with title block and revision table, revision clouds and stamps, then ' +
+				'export all sheets to PDF.', ['pdDrawingSheet', 'pdExportSheetsPdf']]
+		];
+
+		var div = document.createElement('div');
+		div.style.cssText = 'font-size:12px;max-height:' + Math.max(260, window.innerHeight - 220) + 'px;overflow:auto;';
+		var head = document.createElement('div');
+		head.style.cssText = 'font-weight:bold;font-size:15px;margin-bottom:6px;';
+		mxUtils.write(head, 'ProcessDraw Quick Guide');
+		div.appendChild(head);
+
+		for (var i = 0; i < sections.length; i++)
+		{
+			var box = document.createElement('div');
+			box.style.cssText = 'margin:8px 0;padding-top:6px;border-top:1px solid rgba(128,128,128,0.3);';
+			var t = document.createElement('div');
+			t.style.fontWeight = 'bold';
+			mxUtils.write(t, (i + 1) + '. ' + sections[i][0]);
+			box.appendChild(t);
+			var d = document.createElement('div');
+			d.style.cssText = 'opacity:0.8;margin:2px 0 4px 0;';
+			mxUtils.write(d, sections[i][1]);
+			box.appendChild(d);
+			var buttons = document.createElement('div');
+			buttons.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+
+			for (var j = 0; j < sections[i][2].length; j++)
+			{
+				(function(name)
+				{
+					var action = ui.actions.get(name);
+
+					if (action != null)
+					{
+						var btn = mxUtils.button(String(mxResources.get(name, null, action.label || name)).replace(/\.\.\.$/, ''),
+							function()
+						{
+							ui.hideDialog();
+							action.funct();
+						});
+						btn.className = 'geBtn';
+						btn.style.margin = '0';
+						buttons.appendChild(btn);
+					}
+				})(sections[i][2][j]);
+			}
+
+			box.appendChild(buttons);
+			div.appendChild(box);
+		}
+
+		var dlg = new CustomDialog(ui, div, null, null, mxResources.get('close'), null, null, true);
+		ui.showDialog(dlg.container, 560, Math.min(window.innerHeight - 60, 640), true, true);
+	};
 
 	function addMenus(ui)
 	{
+		mxResources.parse('pdQuickGuide=Quick Guide...\n');
+
+		ui.actions.addAction('pdQuickGuide', function()
+		{
+			showQuickGuide(ui);
+		});
+
+		for (var i = 0; i < SUBMENUS.length; i++)
+		{
+			(function(items)
+			{
+				ui.menus.put(SUBMENUS[i][0], new Menu(function(menu, parent)
+				{
+					ui.menus.addMenuItems(menu, items, parent);
+				}));
+			})(SUBMENUS[i][2]);
+		}
+
 		ui.menus.put('processdraw', new Menu(function(menu, parent)
 		{
-			ui.menus.addMenuItems(menu, MENU_ITEMS, parent);
+			fillMainMenu(ui, menu, parent);
 		}));
 
 		// Main menu of the simple and sketch themes
@@ -562,16 +683,65 @@
 			};
 		}
 
-		// Menubar of the classic theme
-		if (ui.menubar != null && ui.menubar.container != null)
+		// Menubar of the classic themes: "ProcessDraw" between Extras and Help, also when the
+		// menubar is created again (theme change)
+		mxResources.parse('processdraw=ProcessDraw\n');
+		var items = ui.menus.defaultMenuItems.slice();
+
+		if (items.indexOf('processdraw') < 0)
 		{
-			ui.menubar.addMenu(mxResources.get('pdMenu'), function(menu, parent)
-			{
-				ui.menus.addMenuItems(menu, MENU_ITEMS, parent);
-			});
+			var help = items.indexOf('help');
+			items.splice((help >= 0) ? help : items.length, 0, 'processdraw');
+			ui.menus.defaultMenuItems = items;
 		}
 
-		// Right-click on ProcessDraw symbols
+		addToMenubar(ui);
+		installPopupMenu(ui);
+	};
+
+	/**
+	 * Adds the ProcessDraw menu to an existing menubar (created before this
+	 * extension was loaded), in front of Help.
+	 */
+	function addToMenubar(ui)
+	{
+		if (ui.menubar == null || ui.menubar.container == null)
+		{
+			return;
+		}
+
+		var children = Array.prototype.slice.call(ui.menubar.container.children);
+		var label = mxResources.get('pdMenu');
+		var help = null;
+
+		for (var i = 0; i < children.length; i++)
+		{
+			if (children[i].innerText == label)
+			{
+				return;
+			}
+
+			if (help == null && children[i].innerText == mxResources.get('help'))
+			{
+				help = children[i];
+			}
+		}
+
+		var elt = ui.menubar.addMenu(label, function(menu, parent)
+		{
+			fillMainMenu(ui, menu, parent);
+		}, help);
+
+		// Menubar.addMenu sets the menubar container's class; the other menus use geItem
+		elt.className = (help != null) ? help.className : 'geItem';
+		elt.setAttribute('title', 'ProcessDraw: P&ID and PFD tools');
+	};
+
+	/**
+	 * Right-click on ProcessDraw symbols.
+	 */
+	function installPopupMenu(ui)
+	{
 		var createPopupMenu = ui.menus.createPopupMenu;
 
 		ui.menus.createPopupMenu = function(menu, cell, evt)

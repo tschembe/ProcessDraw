@@ -135,6 +135,10 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [x] Tests: in-app self-test 98 checks; PDF exported through the CLI and checked
 - [ ] User test: print / PDF of a multi-sheet project
 
+## Menu
+- [x] ProcessDraw menu in the menu bar between Extras and Help, grouped submenus per feature area,
+      Quick Guide dialog with buttons for every feature (self-test checks position and visibility)
+
 ## Later
 - [ ] Excel import (round-trip edits)
 - [ ] DXF export
