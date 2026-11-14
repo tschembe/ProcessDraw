@@ -70,11 +70,20 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [ ] User test in the editor
 - [ ] Later: separate sequence per service code (option), line breaks across sheets (phase 4)
 
-## Phase 4 — Multi-sheet project
-- [ ] Sheets = pages; sheet number/title in page metadata
-- [ ] Off-page connector pairs (from/to sheet, jump on double click)
-- [ ] Project-wide tag uniqueness across sheets
-- [ ] Project settings dialog (project no., client, units, patterns) stored in file
+## Phase 4 — Multi-sheet project ✅
+- [x] Sheets = pages with sheet number, drawing number, title, type (stored on each page)
+- [x] Sheets dialog: all sheets in one table, number sheets 001…, drawing numbers from the project prefix,
+      rename pages "<no.> <title>", click a page name to go there
+- [x] Project settings: project number/name, client, site, area, prepared by, drawing number prefix
+- [x] Off-page connectors linked in pairs: create the partner on another sheet or link to an unlinked one
+- [x] Connector sheet text follows the partner's sheet (drawing no. › sheet no. › page name)
+- [x] Double-click a linked connector jumps to its partner; right-click: Link / Go to Partner
+- [x] Lines continue across sheets through linked connectors (same line number)
+- [x] Project-wide tag uniqueness across sheets (from phase 2)
+- [x] Check Project: unlinked connectors, double links, same direction, outdated sheet text
+- [x] Tests: in-app self-test (55 checks); tests run with a separate profile (--user-data-dir)
+- [ ] User test in the editor
+- [ ] Later: separate files per sheet / project folder (today one .drawio file = one project)
 
 ## Phase 5 — PFD & stream tables
 - [ ] Stream number marker (diamond) linked to stream data

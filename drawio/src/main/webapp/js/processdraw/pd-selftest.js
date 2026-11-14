@@ -199,6 +199,49 @@
 			var list = (svc != null) ? document.getElementById(svc.getAttribute('list')) : null;
 			ok(list != null && list.options.length == 18, 'service code suggestions', (list != null) ? list.options.length : 'none');
 
+			// ---------------------------------------------------------- Multi-sheet project (phase 4)
+			var Pr = ProcessDraw.Project;
+			var page1 = ui.currentPage;
+			T.setSettings(ui, {projectNumber: '1234', docPrefix: '1234-PID-'});
+			ok(T.getSettings(ui).docPrefix == '1234-PID-', 'project settings saved');
+			Pr.setSheet(ui, page1, {number: '001', drawing: '1234-PID-001', title: 'Feed', type: 'P&ID'});
+			ok(Pr.getSheetLabel(ui, page1) == '1234-PID-001', 'sheet label from drawing number',
+				Pr.getSheetLabel(ui, page1));
+
+			var pumpX = insert('pd_pump_centrifugal', 100, 900);
+			var outX = insert('pd_offpage_out', 300, 880);
+			var lineX = line(pumpX, outX);
+			Ln.update(ui, lineX, {size: '3"', service_code: 'P', pipe_class: 'A1A'}, true);
+
+			var page2 = ui.insertPage();
+			ok(page2 != null && ui.pages.length >= 2, 'second page created');
+			Pr.setSheet(ui, page2, {number: '002', drawing: '1234-PID-002', title: 'Pumps'});
+			ok(Pr.getSheet(ui, page2).title == 'Pumps', 'sheet data on other page');
+			ui.selectPage(page1);
+
+			var partner = Pr.link(ui, outX, page2, null);
+			ok(ui.currentPage == page2, 'link shows partner page');
+			ok(T.attr(partner, 'connector_id') == T.attr(outX, 'connector_id') && T.attr(partner, 'direction') == 'from',
+				'partner linked', T.attr(partner, 'connector_id') + ' ' + T.attr(partner, 'direction'));
+			ok(T.attr(partner, 'sheet') == '1234-PID-001' && T.attr(outX, 'sheet') == '1234-PID-002',
+				'sheet labels filled', T.attr(partner, 'sheet') + ' / ' + T.attr(outX, 'sheet'));
+
+			var drumY = insert('pd_vessel_vertical', 400, 100);
+			var lineY = line(partner, drumY);
+			ok(ln(lineY) == ln(lineX) && ln(lineY) != '', 'line continues on the next sheet', ln(lineY) + ' / ' + ln(lineX));
+			ok(T.findTag(ui, tag(drumY), drumY).length == 0, 'tags stay unique across sheets', tag(drumY));
+
+			Pr.goToPartner(ui, partner);
+			ok(ui.currentPage == page1 && graph.getSelectionCell() == outX, 'double-click target: jump to partner');
+
+			Pr.setSheet(ui, page2, {drawing: '1234-PID-010'});
+			Pr.updateConnectors(ui);
+			ok(T.attr(outX, 'sheet') == '1234-PID-010', 'connector follows changed drawing number', T.attr(outX, 'sheet'));
+			ok(Pr.checkConnectors(ui).length == 0, 'linked pair passes check', JSON.stringify(Pr.checkConnectors(ui).map(function(c) { return c.problem; })));
+			var lonely = insert('pd_offpage_in', 600, 900);
+			var problems = Pr.checkConnectors(ui);
+			ok(problems.length == 1 && problems[0].cell == lonely && problems[0].problem == 'not linked', 'unlinked connector reported');
+
 			// ISA decoding
 			ok(T.decodeIsa('FIC') == 'Flow Indicating Controller', 'ISA decode');
 		}

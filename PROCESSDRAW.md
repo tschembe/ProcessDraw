@@ -40,6 +40,7 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | `.../processdraw/pd-fields.js` | Field captions, units (metric/imperial) and suggested values |
 | `.../processdraw/pd-properties.js` | Engineering tab in the Format panel, data sheet dialog, double-click |
 | `.../processdraw/pd-lines.js` | Line number pattern, automatic sequence, continuation through inline items, join/split |
+| `.../processdraw/pd-project.js` | Sheets, project settings, linked off-page connectors, jump, connector check |
 | `.../processdraw/pd-actions.js` | ProcessDraw menu, right-click items, renumber/spare/check/settings commands |
 | `.../processdraw/pd-selftest.js` | In-app self-test, only loaded with `pdtest=1` |
 | `tools/symbol-sheet.cjs` | Builds a sheet with all symbols; `npm run symbols` → `symbols.png` |
@@ -70,11 +71,19 @@ npm run test:pd        # tag parsing, ISA decoding, line patterns (Node)
 npm run symbols        # all symbols → symbols.png
 # In-app self-test on an empty diagram (inserts symbols, numbers, renumbers, opens dialogs):
 echo '{"pdtest": "1"}' > urlParams.json
-DRAWIO_ENV=dev ELECTRON_ENABLE_LOGGING=1 npx electron . empty.drawio 2>&1 | grep PDTEST
+# --user-data-dir keeps the test away from a ProcessDraw that is already open
+DRAWIO_ENV=dev ELECTRON_ENABLE_LOGGING=1 npx electron . --user-data-dir=/tmp/pd-test empty.drawio 2>&1 | grep PDTEST
 rm urlParams.json
 ```
 
-## Project settings
+## Project settings and sheets
+
+Each page is a sheet; its data is on the page's root cell (`pd_sheet_number`, `pd_drawing_number`,
+`pd_sheet_title`, `pd_sheet_type`). Project data is on the first page (`pd_project_number`,
+`pd_project_name`, `pd_client`, `pd_site`, `pd_area`, `pd_prepared_by`, `pd_doc_prefix`).
+Off-page connectors are linked by a shared `connector_id` (C01, C02, ...).
+
+### Numbering settings
 
 Stored as attributes on the root cell of the first page (`pd_tag_start`, `pd_tag_step`,
 `pd_tag_digits`, `pd_tag_separator`, `pd_autonumber`, `pd_units`, `pd_line_pattern`, `pd_line_start`,
@@ -115,7 +124,7 @@ in the outer repo.
 | 1 | ISA 5.1 / ISO 10628 + DIN/EN symbol libraries with nozzles and data templates | done |
 | 2 | Smart objects: engineering properties, auto tag numbering, ISA instrument bubbles | done |
 | 3 | Configurable line numbering spec | done |
-| 4 | Multi-sheet project, off-page connectors, project-wide tag uniqueness | |
+| 4 | Multi-sheet project, off-page connectors, project-wide tag uniqueness | done |
 | 5 | PFD stream markers + heat and material balance tables | |
 | 6 | Excel equipment/line/instrument/valve lists + consistency checker | |
 | 7 | Drawing sheets: title block, revision table, revision clouds, IFR/IFC stamps | |

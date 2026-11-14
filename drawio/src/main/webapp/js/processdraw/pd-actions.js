@@ -14,7 +14,7 @@
 		'pdRenumber=Renumber Selection...\n' +
 		'pdNumberAll=Number All Unnumbered Items\n' +
 		'pdAddSpare=Add Spare (A/B)\n' +
-		'pdCheckTags=Check Tags...\n' +
+		'pdCheckTags=Check Project...\n' +
 		'pdSettings=Tag Numbering & Units...\n' +
 		'pdLineSettings=Line Numbering...\n' +
 		'pdJoinLines=Join Line Segments\n' +
@@ -170,9 +170,24 @@
 			}
 		}
 
+		var connectors = (ProcessDraw.Project != null) ? ProcessDraw.Project.checkConnectors(ui) : [];
+
+		if (connectors.length > 0)
+		{
+			addHeading('Off-page connectors (' + connectors.length + ')');
+
+			for (var i = 0; i < connectors.length; i++)
+			{
+				var c = connectors[i];
+				addLink((Tags.attr(c.cell, 'description') + ' ' + Tags.attr(c.cell, 'sheet')).trim() + ': ' +
+					c.problem, c.cell, c.page);
+				problems++;
+			}
+		}
+
 		if (problems == 0)
 		{
-			mxUtils.write(div, 'All tags are unique and numbered.');
+			mxUtils.write(div, 'All tags are unique and numbered, all off-page connectors are linked.');
 		}
 
 		var dlg = new CustomDialog(ui, div, null, null, mxResources.get('close'), null, null, true);
@@ -521,7 +536,8 @@
 	};
 
 	var MENU_ITEMS = ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-', 'pdJoinLines',
-		'pdSplitLine', 'pdUpdateLines', '-', 'pdCheckTags', '-', 'pdSettings', 'pdLineSettings', '-',
+		'pdSplitLine', 'pdUpdateLines', '-', 'pdLinkOffpage', 'pdGoToPartner', 'pdUpdateOffpage', '-',
+		'pdCheckTags', '-', 'pdProjectSettings', 'pdSheets', 'pdSettings', 'pdLineSettings', '-',
 		'processDrawAbout'];
 
 	function addMenus(ui)

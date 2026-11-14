@@ -328,6 +328,27 @@
 
 			var cls = Tags.attr(t, 'pd_class');
 
+			// Linked off-page connector: the line on the partner's sheet
+			if (cls == 'offpage' && ProcessDraw.Project != null)
+			{
+				var partners = ProcessDraw.Project.findPartners(ui, t);
+
+				for (var p = 0; p < partners.length; p++)
+				{
+					var pc = partners[p].cell;
+
+					for (var k = 0; k < pc.getEdgeCount(); k++)
+					{
+						var pe = pc.getEdgeAt(k);
+
+						if (pe != edge && isLine(pe) && Tags.attr(pe, 'sequence') != '')
+						{
+							return pe;
+						}
+					}
+				}
+			}
+
 			if (cls == 'valve' || cls == 'fitting' || cls == 'special' || cls == 'instrument')
 			{
 				var edges = model.getEdges(t);

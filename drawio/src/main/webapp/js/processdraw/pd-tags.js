@@ -137,7 +137,14 @@
 			'MS = Medium pressure steam\nHS = High pressure steam\nC = Condensate\nIA = Instrument air\n' +
 			'PA = Plant air\nN = Nitrogen\nFG = Fuel gas\nW = Water\nDW = Demineralized water\nCH = Chemical',
 		pipeClasses: 'A1A = CS, 150#, RF, CA 3 mm\nA3A = CS, 300#, RF, CA 3 mm\nB1A = SS316L, 150#, RF\n' +
-			'B3A = SS316L, 300#, RF\nD1A = CS galvanized, 150#, utilities'
+			'B3A = SS316L, 300#, RF\nD1A = CS galvanized, 150#, utilities',
+		projectNumber: '',
+		projectName: '',
+		client: '',
+		site: '',
+		area: '',
+		preparedBy: '',
+		docPrefix: ''
 	};
 
 	// Root cell attribute for each setting
@@ -153,7 +160,14 @@
 		lineStart: 'pd_line_start',
 		lineDigits: 'pd_line_digits',
 		serviceCodes: 'pd_service_codes',
-		pipeClasses: 'pd_pipe_classes'
+		pipeClasses: 'pd_pipe_classes',
+		projectNumber: 'pd_project_number',
+		projectName: 'pd_project_name',
+		client: 'pd_client',
+		site: 'pd_site',
+		area: 'pd_area',
+		preparedBy: 'pd_prepared_by',
+		docPrefix: 'pd_doc_prefix'
 	};
 
 	function getPages(ui)
@@ -212,26 +226,35 @@
 		return result;
 	};
 
-	function setSettings(ui, values)
+	/**
+	 * Sets attributes on the root cell of a page (sheet data, project settings).
+	 * Undoable on the current page; other pages are changed directly and the
+	 * file is marked as modified. A null value removes the attribute.
+	 */
+	function setPageAttributes(ui, page, values)
 	{
-		var firstPage = getPages(ui)[0];
-		var root = getPageRoot(ui, firstPage);
+		var root = getPageRoot(ui, page);
 		var value = (mxUtils.isNode(root.value)) ? root.value.cloneNode(true) :
 			mxUtils.createXmlDocument().createElement('object');
 
 		for (var key in values)
 		{
-			var v = values[key];
-			value.setAttribute(SETTING_KEYS[key], (typeof v === 'boolean') ? (v ? '1' : '0') : String(v));
+			if (values[key] == null)
+			{
+				value.removeAttribute(key);
+			}
+			else
+			{
+				value.setAttribute(key, String(values[key]));
+			}
 		}
 
-		if (firstPage == null || firstPage == ui.currentPage)
+		if (page == null || page == ui.currentPage)
 		{
 			ui.editor.graph.model.setValue(root, value);
 		}
 		else
 		{
-			// First page is not shown: change it directly and mark the file as modified
 			root.value = value;
 			var file = ui.getCurrentFile();
 
@@ -240,6 +263,26 @@
 				file.fileChanged();
 			}
 		}
+	};
+
+	function getPageAttribute(ui, page, name)
+	{
+		var root = getPageRoot(ui, page);
+
+		return (root != null && mxUtils.isNode(root.value)) ? (root.value.getAttribute(name) || '') : '';
+	};
+
+	function setSettings(ui, values)
+	{
+		var attrs = {};
+
+		for (var key in values)
+		{
+			var v = values[key];
+			attrs[SETTING_KEYS[key]] = (typeof v === 'boolean') ? (v ? '1' : '0') : String(v);
+		}
+
+		setPageAttributes(ui, getPages(ui)[0], attrs);
 	};
 
 	// ---------------------------------------------------------------- Cells
@@ -607,6 +650,10 @@
 		decodeIsa: decodeIsa,
 		getSettings: getSettings,
 		setSettings: setSettings,
+		setPageAttributes: setPageAttributes,
+		getPageAttribute: getPageAttribute,
+		getPages: getPages,
+		getPageRoot: getPageRoot,
 		isPd: isPd,
 		attr: attr,
 		forEachCell: forEachCell,
