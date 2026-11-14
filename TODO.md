@@ -85,11 +85,22 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [ ] User test in the editor
 - [ ] Later: separate files per sheet / project folder (today one .drawio file = one project)
 
-## Phase 5 — PFD & stream tables
-- [ ] Stream number marker (diamond) linked to stream data
-- [ ] Heat & material balance table (vertical/horizontal), editable, linked to streams
-- [ ] Stream table updates when stream data changes
-- [ ] PFD equipment summary labels
+## Phase 5 — PFD & stream tables ✅
+- [x] Stream markers (diamond / circle) on lines: Add Stream Marker puts them on the line (move with it)
+- [x] Stream numbers 1, 2, 3 … automatically; copies get new numbers; first number configurable
+- [x] Stream data: description, T, P, vapour fraction, mass/molar/volume/std gas flow, MW, density,
+      viscosity + component fractions (project component list, mole or mass basis)
+- [x] H&MB table (sidebar or ProcessDraw > Insert H&MB Table): columns or rows, streams of this sheet or
+      all sheets, empty rows hidden, units follow the project unit system
+- [x] Table updates in the same undo step as the stream change (undo keeps table and data together)
+- [x] H&MB editor (double-click the table): grid of all streams, paste blocks from Excel / simulators
+- [x] Equipment summaries (right-click equipment): tag, service, size/duty/flow, power, design, material;
+      follow equipment changes; double-click opens the equipment data sheet
+- [x] Tables and summaries are not edited as text (generated)
+- [x] Tests: in-app self-test (69 checks) — found and fixed missing units for stream T and P
+- [ ] User test in the editor
+- [ ] Later: import a stream table file (CSV) by stream number; copied summaries keep pointing at the
+      original equipment
 
 ## Phase 6 — Lists & checks
 - [ ] Equipment list → .xlsx

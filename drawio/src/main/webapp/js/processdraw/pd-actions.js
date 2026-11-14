@@ -536,8 +536,8 @@
 	};
 
 	var MENU_ITEMS = ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-', 'pdJoinLines',
-		'pdSplitLine', 'pdUpdateLines', '-', 'pdLinkOffpage', 'pdGoToPartner', 'pdUpdateOffpage', '-',
-		'pdCheckTags', '-', 'pdProjectSettings', 'pdSheets', 'pdSettings', 'pdLineSettings', '-',
+		'pdSplitLine', 'pdUpdateLines', '-', 'pdAddStream', 'pdAddHmb', 'pdEditHmb', 'pdAddSummary', '-', 'pdLinkOffpage', 'pdGoToPartner', 'pdUpdateOffpage', '-',
+		'pdCheckTags', '-', 'pdProjectSettings', 'pdSheets', 'pdSettings', 'pdLineSettings', 'pdHmbSettings', '-',
 		'processDrawAbout'];
 
 	function addMenus(ui)

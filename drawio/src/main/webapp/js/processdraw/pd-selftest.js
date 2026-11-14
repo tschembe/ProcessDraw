@@ -141,7 +141,8 @@
 
 			function line(src, trg)
 			{
-				return graph.addEdge(L.createCell(L.getSymbol('pd_line_main')), parent, src, trg);
+				// Layer of the page that is shown now
+				return graph.addEdge(L.createCell(L.getSymbol('pd_line_main')), graph.getDefaultParent(), src, trg);
 			};
 
 			function ln(edge)
@@ -241,6 +242,66 @@
 			var lonely = insert('pd_offpage_in', 600, 900);
 			var problems = Pr.checkConnectors(ui);
 			ok(problems.length == 1 && problems[0].cell == lonely && problems[0].problem == 'not linked', 'unlinked connector reported');
+
+			// ---------------------------------------------------------- PFD streams and H&MB (phase 5)
+			var PF = ProcessDraw.PFD;
+			ui.selectPage(page2);
+			var pumpS = insert('pd_pump_centrifugal', 100, 400);
+			var drumS = insert('pd_vessel_vertical', 400, 350);
+			var eS1 = line(pumpS, drumS);
+			var eS2 = line(drumS, pumpS);
+			var m1 = PF.addMarkers(ui, [eS1])[0];
+			var m2 = PF.addMarkers(ui, [eS2])[0];
+			ok(T.attr(m1, 'stream_number') == '1' && T.attr(m2, 'stream_number') == '2', 'streams numbered 1, 2',
+				T.attr(m1, 'stream_number') + ',' + T.attr(m2, 'stream_number'));
+			ok(graph.model.getParent(m1) == eS1, 'marker sits on the line');
+			T.setAttributes(graph, m1, {temperature: '45', pressure: '12.5', mass_flow: '25000'});
+			var tbl = graph.importCells([L.createCell(L.getSymbol('pd_hmb_table'))], 0, 0, graph.getDefaultParent())[0];
+			var html = T.attr(tbl, 'label');
+			ok(html.indexOf('HEAT AND MATERIAL BALANCE') >= 0 && html.indexOf('25000') >= 0 && html.indexOf('°C') >= 0,
+				'table filled on insert', [html.indexOf('HEAT AND MATERIAL BALANCE'), html.indexOf('25000'), html.indexOf('°C'), html.match(/Temperature<\/td><td[^>]*>([^<]*)/)].join(' | '));
+			ok(html.indexOf('Viscosity') < 0, 'empty rows hidden');
+			T.setAttributes(graph, m1, {temperature: '60'});
+			ok(T.attr(tbl, 'label').indexOf('>60<') >= 0, 'table follows stream change');
+			ui.editor.undoManager.undo();
+			ok(T.attr(m1, 'temperature') == '45' && T.attr(tbl, 'label').indexOf('>45<') >= 0 &&
+				T.attr(tbl, 'label').indexOf('>60<') < 0, 'undo restores stream and table together');
+			var dupM = graph.moveCells([m1], 10, 10, true, eS1)[0];
+			ok(T.attr(dupM, 'stream_number') == '3', 'copied marker gets new number', T.attr(dupM, 'stream_number'));
+			graph.removeCells([dupM]);
+
+			T.setSettings(ui, {components: 'Methane\nEthane'});
+			PF.ensureComponents(ui, m1);
+			ok(m1.value.hasAttribute('comp_Methane'), 'component fields added');
+			T.setAttributes(graph, m1, {comp_Methane: '0.85'});
+			ok(T.attr(tbl, 'label').indexOf('Methane') >= 0 && T.attr(tbl, 'label').indexOf('mol frac') >= 0,
+				'component row in table');
+			ok(!graph.isCellEditable(tbl), 'table not editable in place');
+
+			// H&MB editor: paste a block from Excel into the first cell
+			PF.openEditor(ui, tbl);
+			var first = document.querySelector('.geDialog input[data-row="0"][data-col="0"]');
+			var dt = new DataTransfer();
+			dt.setData('text/plain', 'Feed\tReturn\n50\t35\n');
+			first.dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt, bubbles: true, cancelable: true}));
+			var okBtn = Array.prototype.filter.call(document.querySelectorAll('.geDialog button'),
+				function(b) { return b.innerText == mxResources.get('apply'); })[0];
+			okBtn.click();
+			ok(T.attr(m1, 'description') == 'Feed' && T.attr(m2, 'description') == 'Return' &&
+				T.attr(m1, 'temperature') == '50' && T.attr(m2, 'temperature') == '35', 'paste block into editor',
+				[T.attr(m1, 'description'), T.attr(m2, 'description'), T.attr(m1, 'temperature'), T.attr(m2, 'temperature')].join(','));
+			ok(T.attr(tbl, 'label').indexOf('Return') >= 0, 'table updated after editor');
+
+			// Equipment summary follows the equipment data
+			T.setAttributes(graph, drumS, {service: 'Flash Drum', diameter: '1200', length_tt: '3600',
+				design_pressure: '12', design_temperature: '120'});
+			var sum = PF.addSummaries(ui, [drumS])[0];
+			var sl = T.attr(sum, 'label');
+			ok(sl.indexOf(tag(drumS)) >= 0 && sl.indexOf('FLASH DRUM') >= 0 && sl.indexOf('ID 1200 x 3600') >= 0 &&
+				sl.indexOf('12 barg @ 120') >= 0, 'equipment summary text', sl);
+			T.setAttributes(graph, drumS, {design_pressure: '16'});
+			ok(T.attr(sum, 'label').indexOf('16 barg') >= 0, 'summary follows equipment change');
+			ui.selectPage(page1);
 
 			// ISA decoding
 			ok(T.decodeIsa('FIC') == 'Flow Indicating Controller', 'ISA decode');

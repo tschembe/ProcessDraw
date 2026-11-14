@@ -48,6 +48,8 @@
 		line: ['line_number', 'size', 'service_code', 'sequence', 'pipe_class', 'insulation', 'fluid', 'from', 'to'],
 		signal: ['signal_type'],
 		offpage: ['direction', 'sheet', 'connector_id', 'description'],
+		stream: ['description', 'temperature', 'pressure', 'vapour_fraction', 'mass_flow', 'molar_flow',
+			'vol_flow', 'std_gas_flow', 'molecular_weight', 'density', 'viscosity'],
 		annotation: []
 	};
 
@@ -76,8 +78,9 @@
 			obj.setAttribute('pd_tag_prefix', sym.prefix);
 		}
 
-		if (sym.cls != 'line' && sym.cls != 'signal' && sym.cls != 'fitting' &&
-			sym.cls != 'annotation' && sym.cls != 'offpage')
+		var untagged = {line: 1, signal: 1, fitting: 1, annotation: 1, offpage: 1, stream: 1, hmb: 1, summary: 1};
+
+		if (!untagged[sym.cls])
 		{
 			obj.setAttribute('tag', (sym.tag != null) ? sym.tag :
 				((sym.prefix != null && sym.prefix.length > 0) ? sym.prefix + '-???' : ''));
@@ -141,9 +144,9 @@
 		 */
 		getStyle: function(sym)
 		{
-			if (sym.edge)
+			if (sym.edge || sym.rawStyle != null)
 			{
-				return sym.style;
+				return (sym.edge) ? sym.style : sym.rawStyle;
 			}
 
 			var labelStyle = (sym.labelInside) ?

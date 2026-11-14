@@ -13,13 +13,15 @@
 		{
 			pressure: 'barg', dp: 'bar', temperature: '°C', flow: 'm³/h', length: 'm', dimension: 'mm',
 			volume: 'm³', area: 'm²', power: 'kW', duty: 'kW', head: 'm', speed: 'rpm', voltage: 'V',
-			size: 'DN', micron: 'µm'
+			size: 'DN', micron: 'µm', mass_flow: 'kg/h', molar_flow: 'kmol/h', vol_flow: 'm³/h',
+			std_gas_flow: 'Sm³/h', mw: 'kg/kmol', density: 'kg/m³', viscosity: 'cP'
 		},
 		imperial:
 		{
 			pressure: 'psig', dp: 'psi', temperature: '°F', flow: 'gpm', length: 'ft', dimension: 'in',
 			volume: 'gal', area: 'ft²', power: 'hp', duty: 'MMBtu/h', head: 'ft', speed: 'rpm', voltage: 'V',
-			size: 'in', micron: 'µm'
+			size: 'in', micron: 'µm', mass_flow: 'lb/h', molar_flow: 'lbmol/h', vol_flow: 'ft³/h',
+			std_gas_flow: 'MMSCFD', mw: 'lb/lbmol', density: 'lb/ft³', viscosity: 'cP'
 		}
 	};
 
@@ -104,7 +106,21 @@
 		direction: {label: 'Direction', options: ['to', 'from']},
 		sheet: {label: 'Sheet'},
 		connector_id: {label: 'Connector ID'},
-		description: {label: 'Description'}
+		description: {label: 'Description'},
+		stream_number: {label: 'Stream number'},
+		temperature: {label: 'Temperature', q: 'temperature'},
+		pressure: {label: 'Pressure', q: 'pressure'},
+		vapour_fraction: {label: 'Vapour fraction'},
+		mass_flow: {label: 'Mass flow', q: 'mass_flow'},
+		molar_flow: {label: 'Molar flow', q: 'molar_flow'},
+		vol_flow: {label: 'Actual volume flow', q: 'vol_flow'},
+		std_gas_flow: {label: 'Std gas flow', q: 'std_gas_flow'},
+		molecular_weight: {label: 'Molecular weight', q: 'mw'},
+		density: {label: 'Density', q: 'density'},
+		viscosity: {label: 'Viscosity', q: 'viscosity'},
+		hmb_scope: {label: 'Streams shown', options: ['page|streams on this sheet', 'all|streams on all sheets']},
+		hmb_layout: {label: 'Layout', options: ['columns|one column per stream', 'rows|one row per stream']},
+		hmb_hide_empty: {label: 'Hide empty rows', options: ['1|yes', '0|no']}
 	};
 
 	// Readable names for pd_class values
@@ -112,7 +128,8 @@
 	{
 		equipment: 'Equipment', valve: 'Valve', instrument: 'Instrument', special: 'Special Item',
 		fitting: 'Fitting', line: 'Process Line', signal: 'Signal Line', offpage: 'Off-Page Connector',
-		annotation: 'Annotation'
+		annotation: 'Annotation', stream: 'Stream', hmb: 'Heat & Material Balance',
+		summary: 'Equipment Summary'
 	};
 
 	ProcessDraw.Fields =
@@ -126,6 +143,12 @@
 			if (FIELDS[key] != null)
 			{
 				return FIELDS[key].label;
+			}
+
+			// Stream composition: "comp_n_Butane" -> "n Butane"
+			if (key.substring(0, 5) == 'comp_')
+			{
+				return key.substring(5).replace(/_/g, ' ');
 			}
 
 			// Custom fields: "heat_tracing" -> "Heat tracing"

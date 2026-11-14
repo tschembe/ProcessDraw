@@ -380,6 +380,19 @@
 				});
 			}
 
+			if (cls == 'hmb' && ProcessDraw.PFD != null)
+			{
+				addButton(buttons, 'Edit values...', 'Edit the stream data in a table (double-click)', function()
+				{
+					if (inDialog)
+					{
+						ui.hideDialog();
+					}
+
+					ProcessDraw.PFD.openEditor(ui, cell);
+				});
+			}
+
 			if (isLine && value.getAttribute('pd_line_manual') == '1')
 			{
 				addButton(buttons, 'Use pattern', 'Build the line number from the project pattern again', function()

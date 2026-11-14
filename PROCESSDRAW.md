@@ -41,6 +41,7 @@ sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 | `.../processdraw/pd-properties.js` | Engineering tab in the Format panel, data sheet dialog, double-click |
 | `.../processdraw/pd-lines.js` | Line number pattern, automatic sequence, continuation through inline items, join/split |
 | `.../processdraw/pd-project.js` | Sheets, project settings, linked off-page connectors, jump, connector check |
+| `.../processdraw/pd-pfd.js` | Stream markers, H&MB tables and editor, equipment summaries, PFD palette |
 | `.../processdraw/pd-actions.js` | ProcessDraw menu, right-click items, renumber/spare/check/settings commands |
 | `.../processdraw/pd-selftest.js` | In-app self-test, only loaded with `pdtest=1` |
 | `tools/symbol-sheet.cjs` | Builds a sheet with all symbols; `npm run symbols` → `symbols.png` |
@@ -82,6 +83,9 @@ Each page is a sheet; its data is on the page's root cell (`pd_sheet_number`, `p
 `pd_sheet_title`, `pd_sheet_type`). Project data is on the first page (`pd_project_number`,
 `pd_project_name`, `pd_client`, `pd_site`, `pd_area`, `pd_prepared_by`, `pd_doc_prefix`).
 Off-page connectors are linked by a shared `connector_id` (C01, C02, ...).
+Stream settings: `pd_stream_start`, `pd_components` (one per line), `pd_comp_basis`. Stream markers
+store components as `comp_<name>` attributes. H&MB tables and equipment summaries keep their generated
+HTML in `label` and are rebuilt in the model's BEFORE_UNDO event (same undo step as the change).
 
 ### Numbering settings
 
@@ -125,6 +129,6 @@ in the outer repo.
 | 2 | Smart objects: engineering properties, auto tag numbering, ISA instrument bubbles | done |
 | 3 | Configurable line numbering spec | done |
 | 4 | Multi-sheet project, off-page connectors, project-wide tag uniqueness | done |
-| 5 | PFD stream markers + heat and material balance tables | |
+| 5 | PFD stream markers + heat and material balance tables | done |
 | 6 | Excel equipment/line/instrument/valve lists + consistency checker | |
 | 7 | Drawing sheets: title block, revision table, revision clouds, IFR/IFC stamps | |

@@ -144,7 +144,10 @@
 		site: '',
 		area: '',
 		preparedBy: '',
-		docPrefix: ''
+		docPrefix: '',
+		streamStart: 1,
+		components: '',
+		compBasis: 'mole fraction'
 	};
 
 	// Root cell attribute for each setting
@@ -167,7 +170,10 @@
 		site: 'pd_site',
 		area: 'pd_area',
 		preparedBy: 'pd_prepared_by',
-		docPrefix: 'pd_doc_prefix'
+		docPrefix: 'pd_doc_prefix',
+		streamStart: 'pd_stream_start',
+		components: 'pd_components',
+		compBasis: 'pd_comp_basis'
 	};
 
 	function getPages(ui)
