@@ -328,17 +328,17 @@
 			var names = sheets.map(function(s) { return s.name; });
 			ok(names.join(',') == 'Equipment,Lines,Instruments,Valves,Specials,Streams,Check', 'workbook sheets', names.join(','));
 			var eqList = sheets[0];
-			ok(eqList.rows.some(function(r) { return r[0] == tag(p1); }) &&
+			ok(eqList.rows.some(function(r) { return r[1] == tag(p1); }) &&
 				eqList.columns.some(function(c) { return c.header == 'Design pressure [barg]'; }), 'equipment list with units');
-			var lineRows = sheets[1].rows.filter(function(r) { return r[0] == ln(e1); });
-			ok(lineRows.length == 1 && lineRows[0][12] == Ln.getSegments(ui, ln(e1)).length && lineRows[0][12] >= 2,
+			var lineRows = sheets[1].rows.filter(function(r) { return r[1] == ln(e1); });
+			ok(lineRows.length == 1 && lineRows[0][13] == Ln.getSegments(ui, ln(e1)).length && lineRows[0][13] >= 2,
 				'line list merges segments', JSON.stringify(lineRows));
-			ok(lineRows.length == 1 && lineRows[0][9] == tag(pumpL), 'line list From', lineRows.length ? lineRows[0][9] : '');
+			ok(lineRows.length == 1 && lineRows[0][10] == tag(pumpL), 'line list From', lineRows.length ? lineRows[0][10] : '');
 			var instRows = sheets[2].rows;
-			ok(instRows.some(function(r) { return r[0] == 'PDIT-205' && r[3] == 'Pressure Differential Indicating Transmitter'; }),
+			ok(instRows.some(function(r) { return r[1] == 'PDIT-205' && r[4] == 'Pressure Differential Indicating Transmitter'; }),
 				'instrument index with ISA description');
-			ok(instRows.some(function(r) { return r[0] == tag(cv); }), 'control valve in instrument index');
-			ok(sheets[3].rows.some(function(r) { return r[0] == '' && r[1] == 'Gate Valve'; }), 'untagged gate valve in valve list');
+			ok(instRows.some(function(r) { return r[1] == tag(cv); }), 'control valve in instrument index');
+			ok(sheets[3].rows.some(function(r) { return r[1] == '' && r[2] == 'Gate Valve'; }), 'untagged gate valve in valve list');
 
 			var issues = LS.runChecks(ui);
 			var has = function(cell, text) { return issues.some(function(i) { return i.cell == cell && i.problem.indexOf(text) >= 0; }); };
@@ -418,6 +418,74 @@
 			ok(document.querySelector('.geDialog') != null && document.querySelector('.geDialog').innerText.indexOf('Revisions') >= 0,
 				'double-click title block opens sheet dialog');
 			ui.hideDialog();
+
+
+			// ---------------------------------------------------------- Excel round trip
+			var RT = ProcessDraw.Roundtrip;
+			ui.selectPage(page1);
+			var rtSheets = LS.getSheets(ui);
+			var eqSheet = rtSheets[0];
+			var flowCol = eqSheet.keys.indexOf('flow_rate');
+			var p1Row = eqSheet.rows.filter(function(r) { return r[1] == tag(p1); })[0];
+			ok(eqSheet.keys[0] == '#id' && eqSheet.columns[0].hidden && flowCol > 0 && p1Row != null, 'export has ID column and keys');
+			p1Row[flowCol] = 42.5;
+			var lnSheet = rtSheets[1];
+			var lnRow = lnSheet.rows.filter(function(r) { return r[0] == ln(e1); })[0];
+			lnRow[lnSheet.keys.indexOf('size')] = '6"';
+			var stSheet = rtSheets.filter(function(x) { return x.name == 'Streams'; })[0];
+			var tRow = stSheet.rows.filter(function(r) { return r[0] == 'temperature'; })[0];
+			var m1Col = stSheet.keys.indexOf(page2.getId() + '|' + m1.id);
+			tRow[m1Col] = 55;
+			eqSheet.rows.push(['missing|id', 'X-999'].concat(new Array(eqSheet.columns.length - 2).fill('')));
+			var wbData = await new Promise(function(res, rej) { ProcessDraw.Xlsx.toBase64(rtSheets, {}, res, rej); });
+			var bytes = Uint8Array.from(atob(wbData), function(ch) { return ch.charCodeAt(0); });
+			var workbook = await ProcessDraw.Xlsx.readWorkbook(bytes);
+			var rtPlan = RT.plan(ui, workbook);
+			var keysChanged = rtPlan.changes.map(function(c) { return c.item + ':' + c.key + '=' + c.after; });
+			ok(rtPlan.changes.length == 3 && keysChanged.indexOf(tag(p1) + ':flow_rate=42.5') >= 0 &&
+				keysChanged.indexOf('Stream 1:temperature=55') >= 0, 'import plan finds the edits', keysChanged.join(', '));
+			ok(rtPlan.notes.some(function(n) { return n.indexOf('missing|id') >= 0; }), 'deleted item reported');
+			var segCount = Ln.getSegments(ui, ln(e1)).length;
+			RT.apply(ui, rtPlan.changes);
+			ok(T.attr(p1, 'flow_rate') == '42.5' && T.attr(m1, 'temperature') == '55', 'import applied');
+			ok(T.attr(e1, 'size') == '6"' && ln(e1) == '6"-P-1001-A1A' && Ln.getSegments(ui, ln(e1)).length == segCount,
+				'line size change on all segments', ln(e1));
+			ui.editor.undoManager.undo();
+			ok(T.attr(p1, 'flow_rate') != '42.5' && T.attr(e1, 'size') == '4"', 'undo reverts the whole import');
+
+			// ---------------------------------------------------------- DXF export
+			ui.selectPage(page1);
+			graph.view.validate();
+			var dx = ProcessDraw.Dxf.build(ui);
+			var dxf = dx.dxf;
+			var polylines = (dxf.match(/\r\nPOLYLINE\r\n/g) || []).length;
+			var texts = (dxf.match(/\r\nTEXT\r\n/g) || []).length;
+			ok(dxf.indexOf('AC1009') > 0 && /\r\nEOF\r\n$/.test(dxf), 'DXF R12 structure');
+			ok(polylines > 50 && texts > 20, 'DXF has geometry and text', polylines + ' polylines, ' + texts + ' texts');
+			ok(['EQUIPMENT', 'VALVES', 'PROCESS_LINES', 'FRAME', 'TEXT'].every(function(l) { return dxf.indexOf('\r\n2\r\n' + l + '\r\n') > 0; }),
+				'DXF layers');
+			ok(dxf.indexOf('\r\n1\r\n' + tag(pumpL) + '\r\n') > 0 && dxf.indexOf('1234-PID-001') > 0, 'DXF contains tags and title block text');
+			var ext = /\$EXTMAX\r\n10\r\n([\d.-]+)\r\n20\r\n([\d.-]+)/.exec(dxf);
+			ok(ext != null && parseFloat(ext[1]) > 400 && parseFloat(ext[1]) <= 421 && parseFloat(ext[2]) > 280 &&
+				parseFloat(ext[2]) <= 298, 'DXF in millimetres (A3 sheet)', ext && ext.slice(1).join(' x '));
+			console.log('PDTEST DXF ' + btoa(dxf));
+
+			// ---------------------------------------------------------- Simulator import
+			var SI = ProcessDraw.SimImport;
+			SI.showDialog(ui);
+			SI._load(ProcessDraw.Xlsx.parseDelimited('\t1\t2\nTemperature [K]\t313.15\t300\nPressure [kPa]\t2301.325\t2101.325\n' +
+				'Mass Flow [kg/s]\t5\t2.5\nComp Mole Frac (Methane)\t0.8\t0.75\nHeat Flow [kJ/h]\t-1e8\t-2e7\n'), 'test');
+			var importBtn = Array.prototype.filter.call(document.querySelectorAll('.geDialog button'),
+				function(b) { return b.innerText == 'Import'; })[0];
+			importBtn.click();
+			ok(T.attr(m1, 'temperature') == '40' && T.attr(m1, 'pressure') == '22' && T.attr(m1, 'mass_flow') == '18000' &&
+				T.attr(m1, 'comp_Methane') == '0.8' && T.attr(m2, 'temperature') == '26.85',
+				'simulator import with unit conversion', [T.attr(m1, 'temperature'), T.attr(m1, 'pressure'), T.attr(m1, 'mass_flow'),
+				T.attr(m1, 'comp_Methane'), T.attr(m2, 'temperature')].join(', '));
+			ui.selectPage(page2);
+			await new Promise(function(r) { window.setTimeout(r, 50); });
+			ok(T.attr(tbl, 'label').indexOf('18000') >= 0, 'H&MB table shows imported values');
+			ui.selectPage(page1);
 
 			// ISA decoding
 			ok(T.decodeIsa('FIC') == 'Flow Indicating Controller', 'ISA decode');

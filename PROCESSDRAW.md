@@ -53,6 +53,9 @@ matching commands. The menu is defined in `pd-actions.js` (`SUBMENUS`, `fillMain
 | `.../processdraw/pd-xlsx.js` | Minimal XLSX writer (zipped with draw.io's JSZip) |
 | `.../processdraw/pd-lists.js` | Equipment / line / instrument / valve / specials / stream lists, Project Check |
 | `.../processdraw/pd-sheet.js` | Drawing frames, title block, revision table, revision clouds/triangles, stamps |
+| `.../processdraw/pd-roundtrip.js` | Import Lists from Excel: match rows by hidden IDs, preview, apply |
+| `.../processdraw/pd-dxf.js` | Export Sheet to DXF (R12, mm, layers) from the rendered diagram |
+| `.../processdraw/pd-simimport.js` | Import Stream Data from HYSYS / DWSIM / CSV / XLSX with unit conversion |
 | `.../processdraw/pd-actions.js` | ProcessDraw menu, right-click items, renumber/spare/check/settings commands |
 | `.../processdraw/pd-selftest.js` | In-app self-test, only loaded with `pdtest=1` |
 | `tools/symbol-sheet.cjs` | Builds a sheet with all symbols; `npm run symbols` → `symbols.png` |
@@ -79,7 +82,7 @@ the app would try to install official draw.io updates over ProcessDraw.
 ## Tests
 
 ```bash
-npm run test:pd        # tag parsing, ISA decoding, line patterns, XLSX writer (Node)
+npm run test:pd        # tags, ISA, line patterns, XLSX write/read, CSV, simulator import (Node)
 npm run symbols        # all symbols → symbols.png
 # In-app self-test on an empty diagram (inserts symbols, numbers, renumbers, opens dialogs):
 echo '{"pdtest": "1"}' > urlParams.json

@@ -8,7 +8,7 @@
 {
 	var ProcessDraw = window.ProcessDraw = window.ProcessDraw || {};
 
-	ProcessDraw.VERSION = '0.7.0';
+	ProcessDraw.VERSION = '0.8.0';
 	ProcessDraw.NAME = 'ProcessDraw';
 
 	// Window title and other places that show the application name
@@ -78,7 +78,8 @@
 
 		var modules = [['tags', ProcessDraw.Tags], ['lines', ProcessDraw.Lines],
 			['properties', ProcessDraw.Properties], ['actions', ProcessDraw.Actions],
-			['project', ProcessDraw.Project], ['pfd', ProcessDraw.PFD], ['lists', ProcessDraw.Lists], ['sheet', ProcessDraw.Sheet]];
+			['project', ProcessDraw.Project], ['pfd', ProcessDraw.PFD], ['lists', ProcessDraw.Lists], ['sheet', ProcessDraw.Sheet], ['roundtrip', ProcessDraw.Roundtrip],
+			['dxf', ProcessDraw.Dxf], ['simimport', ProcessDraw.SimImport]];
 
 		for (var i = 0; i < modules.length; i++)
 		{
@@ -131,7 +132,7 @@
 	// Module files, loaded in this order (dynamic scripts have no guaranteed order)
 	var MODULES = ['pd-stencil.js', 'pd-shapes.js', 'pd-library.js', 'pd-symbols-equipment.js',
 		'pd-symbols-piping.js', 'pd-symbols-instruments.js', 'pd-sidebar.js', 'pd-tags.js', 'pd-fields.js',
-		'pd-properties.js', 'pd-actions.js', 'pd-lines.js', 'pd-project.js', 'pd-pfd.js', 'pd-xlsx.js', 'pd-lists.js', 'pd-sheet.js'];
+		'pd-properties.js', 'pd-actions.js', 'pd-lines.js', 'pd-project.js', 'pd-pfd.js', 'pd-xlsx.js', 'pd-lists.js', 'pd-sheet.js', 'pd-roundtrip.js', 'pd-dxf.js', 'pd-simimport.js'];
 
 	// Developer self-test: DRAWIO_ENV=dev with {"pdtest": "1"} in urlParams.json
 	if (urlParams['pdtest'] == '1')

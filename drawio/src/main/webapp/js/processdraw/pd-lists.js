@@ -163,6 +163,32 @@
 
 	// ---------------------------------------------------------------- Lists
 
+	/**
+	 * Identifies an item for the Excel import: "<page id>|<cell id>".
+	 */
+	function itemId(it)
+	{
+		return ((it.page != null) ? it.page.getId() : '') + '|' + it.cell.id;
+	};
+
+	/**
+	 * Adds the hidden ID column and the hidden key row used by the Excel import.
+	 * keys: field key per column; "=" marks calculated (read-only) columns.
+	 */
+	function withIds(sheet, idKey, keys)
+	{
+		sheet.columns.unshift({header: 'ID', width: 4, hidden: true});
+		sheet.keys = [idKey].concat(keys);
+
+		for (var i = 0; i < sheet.rows.length; i++)
+		{
+			var row = sheet.rows[i];
+			row.unshift((row.importKey != null) ? row.importKey : itemId(row.item));
+		}
+
+		return sheet;
+	};
+
 	function equipmentList(ui)
 	{
 		var items = collect(ui, function(c) { return Tags.attr(c, 'pd_class') == 'equipment'; });
@@ -177,12 +203,15 @@
 
 		columns.push({header: 'Sheet', width: 18});
 
-		return {name: 'Equipment', title: 'EQUIPMENT LIST', columns: columns, rows: items.map(function(it)
+		return withIds({name: 'Equipment', title: 'EQUIPMENT LIST', columns: columns, rows: items.map(function(it)
 		{
-			return [Tags.attr(it.cell, 'tag'), humanType(Tags.attr(it.cell, 'pd_type')), Tags.attr(it.cell, 'service')]
+			var row = [Tags.attr(it.cell, 'tag'), humanType(Tags.attr(it.cell, 'pd_type')), Tags.attr(it.cell, 'service')]
 				.concat(keys.map(function(k) { return cellValue(k, Tags.attr(it.cell, k)); }))
 				.concat([sheetOf(ui, it.page)]);
-		})};
+			row.item = it;
+
+			return row;
+		})}, '#id', ['tag', '=type', 'service'].concat(keys).concat(['=sheet']));
 	};
 
 	/**
@@ -247,20 +276,27 @@
 			var froms = joined(g, 'from').split(', ');
 			var tos = joined(g, 'to').split(', ');
 
-			return [(key.charAt(0) == '#') ? '(not numbered)' : key, Tags.attr(first, 'size'),
+			var row = [(key.charAt(0) == '#') ? '(not numbered)' : key, Tags.attr(first, 'size'),
 				Tags.attr(first, 'service_code'), services[Tags.attr(first, 'service_code')] || '',
 				Tags.attr(first, 'sequence'), Tags.attr(first, 'pipe_class'), classes[Tags.attr(first, 'pipe_class')] || '',
 				Tags.attr(first, 'insulation'), joined(g, 'fluid'),
 				froms.filter(function(f) { return tos.indexOf(f) < 0; }).join(', '),
 				tos.filter(function(t) { return froms.indexOf(t) < 0; }).join(', '),
 				joined(g, 'sheet'), g.length];
+
+			// Numbered lines are found by line number, the others by their segment
+			row.importKey = (key.charAt(0) == '#') ? 'cell:' + itemId(g[0]) : key;
+
+			return row;
 		});
 
-		return {name: 'Lines', title: 'LINE LIST', columns: [{header: 'Line number', width: 20},
+		return withIds({name: 'Lines', title: 'LINE LIST', columns: [{header: 'Line number', width: 20},
 			{header: 'Size', width: 7}, {header: 'Service code', width: 9}, {header: 'Service', width: 22},
 			{header: 'Sequence', width: 9}, {header: 'Pipe class', width: 9}, {header: 'Pipe class description', width: 24},
 			{header: 'Insulation', width: 9}, {header: 'Fluid', width: 14}, {header: 'From', width: 14},
-			{header: 'To', width: 14}, {header: 'Sheet(s)', width: 20}, {header: 'Segments', width: 9}], rows: rows};
+			{header: 'To', width: 14}, {header: 'Sheet(s)', width: 20}, {header: 'Segments', width: 9}], rows: rows},
+			'#line', ['=line_number', 'size', 'service_code', '=service', 'sequence', 'pipe_class', '=pipe_class_description',
+			'insulation', 'fluid', '=from', '=to', '=sheets', '=segments']);
 	};
 
 	/**
@@ -284,9 +320,12 @@
 			var fn = Tags.attr(c, 'function') || ((p != null) ? p.fn : '');
 			var loop = Tags.attr(c, 'loop') || ((p != null) ? p.loop : '');
 
-			return [Tags.attr(c, 'tag'), fn, loop, Tags.decodeIsa(fn), humanType(Tags.attr(c, 'pd_type')),
+			var row = [Tags.attr(c, 'tag'), fn, loop, Tags.decodeIsa(fn), humanType(Tags.attr(c, 'pd_type')),
 				Tags.attr(c, 'location'), Tags.attr(c, 'service'), Tags.attr(c, 'range'), Tags.attr(c, 'units'),
 				Tags.attr(c, 'set_pressure') || Tags.attr(c, 'fail_position'), connectedLines(c), sheetOf(ui, it.page)];
+			row.item = it;
+
+			return row;
 		});
 
 		rows.sort(function(a, b)
@@ -294,11 +333,12 @@
 			return compareTags(a[2], b[2]) || compareTags(a[1], b[1]);
 		});
 
-		return {name: 'Instruments', title: 'INSTRUMENT INDEX', columns: [{header: 'Tag', width: 12},
+		return withIds({name: 'Instruments', title: 'INSTRUMENT INDEX', columns: [{header: 'Tag', width: 12},
 			{header: 'Function', width: 9}, {header: 'Loop', width: 8}, {header: 'Description', width: 32},
 			{header: 'Type', width: 22}, {header: 'Location', width: 13}, {header: 'Service', width: 22},
 			{header: 'Range', width: 12}, {header: 'Units', width: 9}, {header: 'Set pressure / fail position', width: 14},
-			{header: 'Line', width: 18}, {header: 'Sheet', width: 18}], rows: rows};
+			{header: 'Line', width: 18}, {header: 'Sheet', width: 18}], rows: rows}, '#id', ['tag', '=function', '=loop',
+			'=description', '=type', 'location', 'service', 'range', 'units', '=set_pressure_fail_position', '=line', '=sheet']);
 	};
 
 	function valveList(ui)
@@ -310,11 +350,14 @@
 		{
 			var c = it.cell;
 
-			return [Tags.attr(c, 'tag'), humanType(Tags.attr(c, 'pd_type')),
+			var row = [Tags.attr(c, 'tag'), humanType(Tags.attr(c, 'pd_type')),
 				Tags.attr(c, 'size') || Tags.attr(c, 'inlet_size'), Tags.attr(c, 'pipe_class'),
 				Tags.attr(c, 'end_connection'), Tags.attr(c, 'normal_position'), Tags.attr(c, 'fail_position'),
 				Tags.attr(c, 'actuator'), cellValue('set_pressure', Tags.attr(c, 'set_pressure')), connectedLines(c),
 				sheetOf(ui, it.page)];
+			row.item = it;
+
+			return row;
 		});
 
 		// Tagged valves first (by tag), then the rest by type
@@ -323,12 +366,13 @@
 			return ((a[0] == '') - (b[0] == '')) || compareTags(a[0], b[0]) || compareTags(a[1], b[1]);
 		});
 
-		return {name: 'Valves', title: 'VALVE LIST', columns: [{header: 'Tag', width: 12},
+		return withIds({name: 'Valves', title: 'VALVE LIST', columns: [{header: 'Tag', width: 12},
 			{header: 'Valve type', width: 22}, {header: 'Size' + unit('size'), width: 9}, {header: 'Pipe class', width: 9},
 			{header: 'End connection', width: 13}, {header: 'Normal position', width: 9},
 			{header: 'Fail position', width: 9}, {header: 'Actuator', width: 18},
 			{header: 'Set pressure' + unit('set_pressure'), width: 11}, {header: 'Line', width: 20},
-			{header: 'Sheet', width: 18}], rows: rows};
+			{header: 'Sheet', width: 18}], rows: rows}, '#id', ['tag', '=type', 'size', 'pipe_class', 'end_connection',
+			'normal_position', 'fail_position', 'actuator', 'set_pressure', '=line', '=sheet']);
 	};
 
 	function specialList(ui)
@@ -336,16 +380,19 @@
 		var items = collect(ui, function(c) { return Tags.attr(c, 'pd_class') == 'special'; });
 		items.sort(function(a, b) { return compareTags(Tags.attr(a.cell, 'tag'), Tags.attr(b.cell, 'tag')); });
 
-		return {name: 'Specials', title: 'SPECIAL ITEMS', columns: [{header: 'Tag', width: 12},
+		return withIds({name: 'Specials', title: 'SPECIAL ITEMS', columns: [{header: 'Tag', width: 12},
 			{header: 'Type', width: 22}, {header: 'Service', width: 22}, {header: 'Size', width: 9},
 			{header: 'Pipe class', width: 9}, {header: 'Line', width: 20}, {header: 'Sheet', width: 18}],
 			rows: items.map(function(it)
 			{
 				var c = it.cell;
 
-				return [Tags.attr(c, 'tag'), humanType(Tags.attr(c, 'pd_type')), Tags.attr(c, 'service'),
+				var row = [Tags.attr(c, 'tag'), humanType(Tags.attr(c, 'pd_type')), Tags.attr(c, 'service'),
 					Tags.attr(c, 'size'), Tags.attr(c, 'pipe_class'), connectedLines(c), sheetOf(ui, it.page)];
-			})};
+				row.item = it;
+
+				return row;
+			})}, '#id', ['tag', '=type', 'service', 'size', 'pipe_class', '=line', '=sheet']);
 	};
 
 	/**
@@ -367,7 +414,7 @@
 
 		var props = ['description'].concat(ProcessDraw.PFD.PROPS);
 		var comps = ProcessDraw.PFD.getComponents(ui);
-		var columns = [{header: 'Property', width: 22}, {header: 'Unit', width: 10}];
+		var columns = [{header: 'Key', width: 4, hidden: true}, {header: 'Property', width: 22}, {header: 'Unit', width: 10}];
 
 		for (var j = 0; j < streams.length; j++)
 		{
@@ -376,21 +423,23 @@
 
 		var rows = props.map(function(k)
 		{
-			return [Fields.getLabel(k), Fields.getUnit(k, Tags.getSettings(ui).units)].concat(streams.map(function(s)
+			return [k, Fields.getLabel(k), Fields.getUnit(k, Tags.getSettings(ui).units)].concat(streams.map(function(s)
 			{
 				return cellValue(k, Tags.attr(s.cell, k));
 			}));
 		}).concat(comps.map(function(c)
 		{
-			return [c.name, Tags.getSettings(ui).compBasis].concat(streams.map(function(s)
+			return [c.key, c.name, Tags.getSettings(ui).compBasis].concat(streams.map(function(s)
 			{
 				return cellValue(c.key, Tags.attr(s.cell, c.key));
 			}));
 		}));
 
-		rows.push(['Sheet', ''].concat(streams.map(function(s) { return sheetOf(ui, s.page); })));
+		rows.push(['=sheet', 'Sheet', ''].concat(streams.map(function(s) { return sheetOf(ui, s.page); })));
 
-		return {name: 'Streams', title: 'HEAT AND MATERIAL BALANCE', columns: columns, rows: rows};
+		// Key row: the stream marker of each column
+		return {name: 'Streams', title: 'HEAT AND MATERIAL BALANCE', columns: columns, rows: rows,
+			keys: ['#streams', '=property', '=unit'].concat(streams.map(itemId))};
 	};
 
 	// ---------------------------------------------------------------- Project check

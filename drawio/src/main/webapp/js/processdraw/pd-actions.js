@@ -543,17 +543,18 @@
 		['pdMenuTags', 'Tags & Equipment', ['pdDataSheet', 'pdRenumber', 'pdNumberAll', 'pdAddSpare', '-',
 			'pdAddSummary', '-', 'pdSettings']],
 		['pdMenuLines', 'Line Numbers', ['pdJoinLines', 'pdSplitLine', 'pdUpdateLines', '-', 'pdLineSettings']],
-		['pdMenuPfd', 'PFD & Heat and Material Balance', ['pdAddStream', 'pdAddHmb', 'pdEditHmb', '-', 'pdAddSummary',
-			'-', 'pdHmbSettings']],
+		['pdMenuPfd', 'PFD & Heat and Material Balance', ['pdAddStream', 'pdAddHmb', 'pdEditHmb', 'pdImportStreams', '-',
+			'pdAddSummary', '-', 'pdHmbSettings']],
 		['pdMenuSheets', 'Sheets & Off-Page Connectors', ['pdSheets', 'pdDrawingSheet', '-', 'pdLinkOffpage',
-			'pdGoToPartner', 'pdUpdateOffpage', '-', 'pdExportSheetsPdf']],
-		['pdMenuLists', 'Lists & Checks', ['pdProjectCheck', 'pdExportLists']],
+			'pdGoToPartner', 'pdUpdateOffpage', '-', 'pdExportSheetsPdf', 'pdExportDxf']],
+		['pdMenuLists', 'Lists & Checks', ['pdProjectCheck', '-', 'pdExportLists', 'pdImportLists']],
 		['pdMenuSettings', 'Settings', ['pdProjectSettings', 'pdSettings', 'pdLineSettings', 'pdHmbSettings']]
 	];
 
 	function fillMainMenu(ui, menu, parent)
 	{
-		ui.menus.addMenuItems(menu, ['pdDataSheet', 'pdProjectCheck', 'pdExportLists', 'pdDrawingSheet', '-'], parent);
+		ui.menus.addMenuItems(menu, ['pdDataSheet', 'pdProjectCheck', 'pdExportLists', 'pdImportLists', 'pdDrawingSheet',
+			'-'], parent);
 
 		for (var i = 0; i < SUBMENUS.length; i++)
 		{
@@ -585,11 +586,14 @@
 			['Sheets', 'Every page is a sheet. Link off-page connectors in pairs; double-click one to jump to its partner.',
 				['pdSheets', 'pdLinkOffpage', 'pdGoToPartner', 'pdUpdateOffpage', 'pdProjectSettings']],
 			['PFD & H&MB', 'Put stream numbers on lines, insert a heat and material balance table that fills itself, ' +
-				'add equipment summaries.', ['pdAddStream', 'pdAddHmb', 'pdEditHmb', 'pdAddSummary', 'pdHmbSettings']],
-			['Lists & checks', 'Export equipment, line, instrument and valve lists to Excel; check the project for ' +
-				'missing data and open ends.', ['pdProjectCheck', 'pdExportLists']],
+				'add equipment summaries, import stream data from HYSYS, DWSIM or a CSV file.',
+				['pdAddStream', 'pdAddHmb', 'pdEditHmb', 'pdImportStreams', 'pdAddSummary', 'pdHmbSettings']],
+			['Lists & checks', 'Export equipment, line, instrument and valve lists to Excel, edit them there and import ' +
+				'the changes back; check the project for missing data and open ends.',
+				['pdProjectCheck', 'pdExportLists', 'pdImportLists']],
 			['Drawing sheets', 'Add a frame with title block and revision table, revision clouds and stamps, then ' +
-				'export all sheets to PDF.', ['pdDrawingSheet', 'pdExportSheetsPdf']]
+				'export all sheets to PDF, or the current sheet to DXF for AutoCAD.',
+				['pdDrawingSheet', 'pdExportSheetsPdf', 'pdExportDxf']]
 		];
 
 		var div = document.createElement('div');

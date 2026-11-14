@@ -103,6 +103,20 @@
 		rows.push(header + '</row>');
 		r++;
 
+		// Hidden row with the field key of each column (used by the Excel import)
+		if (sheet.keys != null)
+		{
+			var keyRow = '<row r="' + r + '" hidden="1">';
+
+			for (var c = 0; c < cols; c++)
+			{
+				keyRow += cell(colName(c) + r, sheet.keys[c], S_TEXT);
+			}
+
+			rows.push(keyRow + '</row>');
+			r++;
+		}
+
 		for (var i = 0; i < sheet.rows.length; i++)
 		{
 			var row = '<row r="' + r + '">';
@@ -121,7 +135,7 @@
 		for (var c = 0; c < cols; c++)
 		{
 			widths += '<col min="' + (c + 1) + '" max="' + (c + 1) + '" width="' +
-				(sheet.columns[c].width || 14) + '" customWidth="1"/>';
+				(sheet.columns[c].width || 14) + '" customWidth="1"' + ((sheet.columns[c].hidden) ? ' hidden="1"' : '') + '/>';
 		}
 
 		widths += '</cols>';
@@ -276,11 +290,292 @@
 		}
 	};
 
+
+	// ---------------------------------------------------------------- Reading
+
+	function decode(s)
+	{
+		return String(s).replace(/&(#x[0-9a-fA-F]+|#\d+|lt|gt|amp|quot|apos);/g, function(m, e)
+		{
+			if (e.charAt(0) == '#')
+			{
+				return String.fromCodePoint((e.charAt(1) == 'x') ? parseInt(e.substring(2), 16) : parseInt(e.substring(1), 10));
+			}
+
+			return {lt: '<', gt: '>', amp: '&', quot: '"', apos: "'"}[e];
+		});
+	};
+
+	// Text of a shared string or inline string: plain <t> or rich text runs
+	function textOf(xml)
+	{
+		var result = '';
+		var re = /<t(?:\s[^>]*)?>([\s\S]*?)<\/t>|<t(?:\s[^>]*)?\/>/g;
+		var m;
+
+		// Phonetic runs (<rPh>) are not part of the text
+		xml = xml.replace(/<rPh[\s\S]*?<\/rPh>/g, '');
+
+		while ((m = re.exec(xml)) != null)
+		{
+			result += (m[1] != null) ? decode(m[1]) : '';
+		}
+
+		return result;
+	};
+
+	function attrOf(tag, name)
+	{
+		var m = new RegExp('\\s' + name + '="([^"]*)"').exec(tag);
+
+		return (m != null) ? decode(m[1]) : null;
+	};
+
+	function colIndex(ref)
+	{
+		var letters = /^[A-Z]+/.exec(ref)[0];
+		var n = 0;
+
+		for (var i = 0; i < letters.length; i++)
+		{
+			n = n * 26 + letters.charCodeAt(i) - 64;
+		}
+
+		return n - 1;
+	};
+
+	/**
+	 * Parses a worksheet into {rows: [[values]], hiddenRows: {index: true}}.
+	 * Row and column indexes are 0-based; empty cells are ''.
+	 */
+	function parseSheet(xml, shared)
+	{
+		var rows = [];
+		var hiddenRows = {};
+		var rowRe = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g;
+		var m;
+		var nextRow = 0;
+
+		while ((m = rowRe.exec(xml)) != null)
+		{
+			var rAttr = attrOf(m[1], 'r');
+			var r = (rAttr != null) ? parseInt(rAttr, 10) - 1 : nextRow;
+			nextRow = r + 1;
+			var hidden = attrOf(m[1], 'hidden');
+
+			if (hidden == '1' || hidden == 'true')
+			{
+				hiddenRows[r] = true;
+			}
+
+			var row = rows[r] = rows[r] || [];
+			var cellRe = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+			var cm;
+			var nextCol = 0;
+
+			while ((cm = cellRe.exec(m[2] || '')) != null)
+			{
+				var ref = attrOf(cm[1], 'r');
+				var c = (ref != null) ? colIndex(ref) : nextCol;
+				nextCol = c + 1;
+				var type = attrOf(cm[1], 't');
+				var inner = cm[2] || '';
+				var v = /<v>([\s\S]*?)<\/v>/.exec(inner);
+				var value = '';
+
+				if (type == 's')
+				{
+					value = (v != null) ? (shared[parseInt(v[1], 10)] || '') : '';
+				}
+				else if (type == 'inlineStr')
+				{
+					value = textOf(inner);
+				}
+				else if (type == 'b')
+				{
+					value = (v != null && v[1] == '1') ? 'TRUE' : 'FALSE';
+				}
+				else if (v != null)
+				{
+					value = (type == 'str' || type == 'e' || isNaN(parseFloat(v[1]))) ? decode(v[1]) : parseFloat(v[1]);
+				}
+
+				row[c] = value;
+			}
+		}
+
+		for (var i = 0; i < rows.length; i++)
+		{
+			rows[i] = rows[i] || [];
+
+			for (var j = 0; j < rows[i].length; j++)
+			{
+				rows[i][j] = (rows[i][j] != null) ? rows[i][j] : '';
+			}
+		}
+
+		return {rows: rows, hiddenRows: hiddenRows};
+	};
+
+	/**
+	 * Reads an XLSX file (ArrayBuffer / Uint8Array) and resolves with
+	 * [{name, rows, hiddenRows}].
+	 */
+	function readWorkbook(data)
+	{
+		var load = function()
+		{
+			return JSZip.loadAsync(data).then(function(zip)
+			{
+				function read(path)
+				{
+					var f = zip.file(path);
+
+					return (f != null) ? f.async('string') : Promise.resolve(null);
+				};
+
+				return Promise.all([read('xl/workbook.xml'), read('xl/_rels/workbook.xml.rels'),
+					read('xl/sharedStrings.xml')]).then(function(parts)
+				{
+					if (parts[0] == null)
+					{
+						throw new Error('Not an Excel workbook (.xlsx)');
+					}
+
+					var shared = [];
+					var siRe = /<si>([\s\S]*?)<\/si>/g;
+					var m;
+
+					while (parts[2] != null && (m = siRe.exec(parts[2])) != null)
+					{
+						shared.push(textOf(m[1]));
+					}
+
+					var targets = {};
+					var relRe = /<Relationship\b[^>]*>/g;
+
+					while ((m = relRe.exec(parts[1] || '')) != null)
+					{
+						targets[attrOf(m[0], 'Id')] = attrOf(m[0], 'Target');
+					}
+
+					var sheets = [];
+					var sheetRe = /<sheet\b[^>]*>/g;
+
+					while ((m = sheetRe.exec(parts[0])) != null)
+					{
+						var target = targets[attrOf(m[0], 'r:id')] || '';
+						var path = (target.charAt(0) == '/') ? target.substring(1) : 'xl/' + target.replace(/^\.\//, '');
+						sheets.push({name: attrOf(m[0], 'name'), path: path});
+					}
+
+					return Promise.all(sheets.map(function(sh) { return read(sh.path); })).then(function(xmls)
+					{
+						return sheets.map(function(sh, i)
+						{
+							var parsed = parseSheet(xmls[i] || '', shared);
+
+							return {name: sh.name, rows: parsed.rows, hiddenRows: parsed.hiddenRows};
+						});
+					});
+				});
+			});
+		};
+
+		if (typeof JSZip !== 'undefined')
+		{
+			return load();
+		}
+
+		return new Promise(function(resolve, reject)
+		{
+			mxscript('js/jszip/jszip.min.js', function() { load().then(resolve, reject); }, null, null, true,
+				function() { reject(new Error('Could not load JSZip')); });
+		});
+	};
+
+	/**
+	 * Parses CSV or tab separated text (delimiter detected: tab, semicolon or comma).
+	 */
+	function parseDelimited(text)
+	{
+		text = String(text || '').replace(/^﻿/, '');
+		var sample = text.split(/\r?\n/).slice(0, 10).join('\n').replace(/"[^"]*"/g, '');
+		var counts = {'\t': (sample.match(/\t/g) || []).length, ';': (sample.match(/;/g) || []).length,
+			',': (sample.match(/,/g) || []).length};
+		var delim = (counts['\t'] > 0) ? '\t' : ((counts[';'] > counts[',']) ? ';' : ',');
+		var rows = [];
+		var row = [];
+		var field = '';
+		var quoted = false;
+
+		for (var i = 0; i < text.length; i++)
+		{
+			var ch = text.charAt(i);
+
+			if (quoted)
+			{
+				if (ch == '"' && text.charAt(i + 1) == '"')
+				{
+					field += '"';
+					i++;
+				}
+				else if (ch == '"')
+				{
+					quoted = false;
+				}
+				else
+				{
+					field += ch;
+				}
+			}
+			else if (ch == '"' && field.length == 0)
+			{
+				quoted = true;
+			}
+			else if (ch == delim)
+			{
+				row.push(field);
+				field = '';
+			}
+			else if (ch == '\n' || ch == '\r')
+			{
+				if (ch == '\r' && text.charAt(i + 1) == '\n')
+				{
+					i++;
+				}
+
+				row.push(field);
+				rows.push(row);
+				row = [];
+				field = '';
+			}
+			else
+			{
+				field += ch;
+			}
+		}
+
+		if (field.length > 0 || row.length > 0)
+		{
+			row.push(field);
+			rows.push(row);
+		}
+
+		return rows.map(function(r)
+		{
+			return r.map(function(v) { return v.trim(); });
+		});
+	};
+
 	ProcessDraw.Xlsx =
 	{
 		colName: colName,
 		sheetName: sheetName,
 		buildFiles: buildFiles,
-		toBase64: toBase64
+		toBase64: toBase64,
+		parseSheet: parseSheet,
+		readWorkbook: readWorkbook,
+		parseDelimited: parseDelimited
 	};
 })();

@@ -68,7 +68,7 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [x] Pattern change updates all automatic line numbers on all pages
 - [x] Tests: `npm run test:pd` (8 unit tests) + in-app self-test (42 checks)
 - [ ] User test in the editor
-- [ ] Later: separate sequence per service code (option), line breaks across sheets (phase 4)
+- [ ] Later: separate sequence per service code (option) (line breaks across sheets: done in phase 4)
 
 ## Phase 4 — Multi-sheet project ✅
 - [x] Sheets = pages with sheet number, drawing number, title, type (stored on each page)
@@ -139,7 +139,23 @@ Legend: `[x]` done · `[ ]` open · `[~]` partly done. One phase at a time; the 
 - [x] ProcessDraw menu in the menu bar between Extras and Help, grouped submenus per feature area,
       Quick Guide dialog with buttons for every feature (self-test checks position and visibility)
 
+## Later list — done (v0.8.0)
+- [x] Excel import (round trip): Export Lists adds a hidden ID column and key row; Import Lists from
+      Excel reads the edited workbook (also after saving in Excel / LibreOffice), shows every change and
+      applies them in one undo step (equipment, instruments, valves, specials by ID; lines by line number
+      on all segments; streams by marker). Calculated columns are ignored; deleted items and new rows reported
+- [x] DXF export: Export Sheet to DXF (R12, mm, A3 frame = ISO margins 20/10 mm), outlines, text and
+      title-block lines on layers EQUIPMENT, VALVES, INSTRUMENTS, PROCESS_LINES, SIGNAL_LINES, FRAME, TEXT …;
+      checked with ezdxf (0 audit errors) and rendered
+- [x] Simulator import: Import Stream Data reads CSV / TXT / XLSX or pasted cells from HYSYS, DWSIM or Excel,
+      recognises properties and components, converts units (K/°F → °C, kPa(a)/Pa/psia → barg, kg/s → kg/h,
+      kgmole/h, mol/s → kmol/h …), matches streams by number or name, preview with corrections
+- [x] Tests: `npm run test:pd` (22 unit tests), in-app self-test 114 checks
+
 ## Later
-- [ ] Excel import (round-trip edits)
-- [ ] DXF export
-- [ ] Simulator import (DWSIM / HYSYS stream data)
+- [ ] Fills in DXF (hatches for solid symbol parts); one DXF per sheet for multi-sheet projects
+- [ ] Simulator native files (DWSIM .dwxmz, HYSYS .hsc) — today via CSV / XLSX / copy-paste
+- [ ] Unit conversion when switching the project unit system; per-area numbering
+- [ ] Separate sequence per service code; separate files per sheet
+- [ ] Copied equipment summaries keep pointing at the original equipment
+- [ ] Choose which lists / columns to export; per-sheet lists

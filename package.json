@@ -18,7 +18,7 @@
     "release-linux": "electron-builder --config electron-builder-linux-mac.json --publish always",
     "release-snap": "electron-builder --config electron-builder-snap.json --publish never",
     "symbols": "node tools/symbol-sheet.cjs drawio/src/main/webapp/js/processdraw symbols.drawio && electron . -x -f png -s 1.5 -b 10 -o symbols.png symbols.drawio",
-    "test:pd": "node --test tools/test-tags.cjs tools/test-lines.cjs tools/test-xlsx.cjs"
+    "test:pd": "node --test tools/test-tags.cjs tools/test-lines.cjs tools/test-xlsx.cjs tools/test-simimport.cjs"
   },
   "keywords": [
     "PFD",
